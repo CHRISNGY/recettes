@@ -178,6 +178,10 @@ nav .add{width:58px;height:58px;border-radius:50%;background:var(--accent);color
 .card.sel{outline:3px solid var(--accent);outline-offset:-3px}
 .selbar{position:fixed;left:16px;right:16px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:11;display:flex;gap:8px;background:var(--card);padding:10px;border-radius:18px;box-shadow:var(--shadow)}
 a.btn{display:block;text-align:center;text-decoration:none}
+.cands{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cand{border-radius:12px;overflow:hidden;border:3px solid transparent;aspect-ratio:4/3;padding:0;background:var(--chip)}
+.cand.on{border-color:var(--accent)}
+.cand img{width:100%;height:100%;object-fit:cover;display:block}
 .hidden{display:none!important}
 </style>
 </head>
@@ -649,6 +653,7 @@ function renderForm(){
       ${E.preview?`<img src="${E.preview}">`:'<div class="hint"><b>📷</b>Prendre / choisir une photo</div>'}
       <input type="file" accept="image/*" hidden onchange="pickPhoto(this)">
     </label>
+    <button class="btn ghost" style="width:100%;margin-top:8px" onclick="pasteImage('recipe')">📋 Coller l'image copiée</button>
     ${E.fromIdea?'<div class="help" style="margin-top:6px">📹 Image de la vidéo. Remplace-la par la photo de TON plat quand tu l\'as fait.</div>':''}
     <div class="lbl">Nom du plat</div>
     <input class="field" id="e-name" value="${esc(E.name)}" placeholder="Ex : Saumon teriyaki" oninput="E.name=this.value">
@@ -793,7 +798,6 @@ function openIdea(id){
     file:null,blob:null,thumbUrl:it?.thumbUrl||'',loading:false,seq:0,
     preview:it?(it.photo&&URLS[it.photo]?URLS[it.photo].full:it.thumbUrl||null):null};
   closeM(); renderIdea(); $('#m-idea').classList.add('open'); $('#idea').scrollTop=0;
-  if(!it)pasteLink(true); // lit le presse-papiers (iOS demande confirmation)
 }
 async function pasteLink(silent){
   try{const m=(await navigator.clipboard.readText()).match(/https?:\/\/\S+/);
@@ -815,21 +819,50 @@ async function setLink(u){
   renderIdea();
   if(m.thumbUrl&&!me.file){try{const b=await fetchImg(m.thumbUrl);if(IDEA===me&&me.seq===seq)me.blob=b}catch(e){console.warn('copie image:',e.message)}} // copie locale si le site l'autorise
 }
+/* image collée depuis le presse-papiers (ex : capture d'écran iPhone « Copier et supprimer ») */
+async function pasteImage(kind){
+  try{
+    if(!navigator.clipboard||!navigator.clipboard.read)throw new Error('unsupported');
+    let b=null;
+    for(const it of await navigator.clipboard.read()){const t=it.types.find(x=>x.startsWith('image/'));if(t){b=await it.getType(t);break}}
+    if(!b){toast('Aucune image dans le presse-papiers');return}
+    applyImage(kind,b);
+  }catch(e){toast(e.message==='unsupported'?'Collage indisponible : choisis dans la galerie':'Collage refusé : réessaie et touche « Coller »',3000)}
+}
+function applyImage(kind,b){
+  if(kind==='idea'){IDEA.file=b;IDEA.blob=null;IDEA.preview=URL.createObjectURL(b);reIdea()}
+  else{E.file=b;E.preview=URL.createObjectURL(b);const sc=$('#form').scrollTop;renderForm();$('#form').scrollTop=sc}
+  toast('📋 Image collée');
+}
+document.addEventListener('paste',e=>{ // Cmd/Ctrl+V sur ordinateur
+  const f=[...(e.clipboardData?.files||[])].find(x=>x.type.startsWith('image/')); if(!f)return;
+  if(IDEA&&$('#i-save')){e.preventDefault();applyImage('idea',f)}
+  else if(E&&$('#e-save')){e.preventDefault();applyImage('recipe',f)}
+});
+async function pickThumb(u){
+  const me=IDEA; me.file=null; me.blob=null; me.thumbUrl=u; me.preview=u; me.thumbChanged=true; reIdea();
+  try{const b=await fetchImg(u); if(IDEA===me&&me.thumbUrl===u&&!me.file)me.blob=b}catch(e){console.warn('copie image:',e.message)}
+}
 function pickIdeaPhoto(inp){const f=inp.files[0];if(!f)return;IDEA.file=f;IDEA.preview=URL.createObjectURL(f);reIdea()}
 function reIdea(){const sc=$('#idea').scrollTop;renderIdea();$('#idea').scrollTop=sc}
 function renderIdea(){
   const I=IDEA,L=I.L,P=L&&PLAT[L.platform];
+  const cands=L&&L.yt?['hqdefault','hq1','hq2','hq3'].map(n=>`https://i.ytimg.com/vi/${L.yt}/${n}.jpg`):[]; // images prises à différents moments par YouTube
   const msg=I.loading?'⏳ Recherche de l\'image…':!L?'Ajoute une capture de la vidéo':L.platform==='instagram'?'Instagram ne donne pas l\'image :<br>ajoute une capture de la vidéo':'Touche pour ajouter une capture';
   $('#idea').innerHTML=`<div class="sec"><button class="close lt" onclick="closeM()">✕</button>
     <h2>${I.id?'✏️ Modifier':'💡 Nouvelle envie'}</h2>
     <div class="lbl">Lien</div>
     ${L?`<div class="link"><span class="pl ${P.cls}">${P.icon} ${P.label}</span><span class="lk">${esc(L.url)}</span><button onclick="IDEA.L=null;IDEA.url='';IDEA.seq++;IDEA.loading=false;reIdea()">✕</button></div>`
-       :`<div class="search" style="margin:0"><input class="field" id="i-url" placeholder="Colle le lien de la vidéo" autocapitalize="off" autocorrect="off" onchange="setLink(this.value)" onpaste="setTimeout(()=>setLink(this.value),0)"><button class="btn ghost" onclick="pasteLink(false)">📋 Coller</button></div>`}
+       :`<button class="btn" style="width:100%" onclick="pasteLink(false)">📋 Coller le lien copié</button>
+       <input class="field" id="i-url" style="margin-top:8px" placeholder="…ou colle-le ici" autocapitalize="off" autocorrect="off" onchange="setLink(this.value)" onpaste="setTimeout(()=>setLink(this.value),0)">`}
     <div class="lbl">Image</div>
     <label class="pick"><div class="hint"><b>${I.loading?'⏳':'📸'}</b>${msg}</div>
       ${I.preview?`<img src="${esc(I.preview)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}
       <input type="file" accept="image/*" hidden onchange="pickIdeaPhoto(this)"></label>
+    <button class="btn ghost" style="width:100%;margin-top:8px" onclick="pasteImage('idea')">📋 Coller l'image copiée</button>
     ${I.preview?'<div class="help" style="margin-top:6px">Touche l\'image pour la remplacer par une capture.</div>':''}
+    ${cands.length?`<div class="lbl">Autres moments de la vidéo</div><div class="cands">${cands.map(u=>`<button class="cand ${!I.file&&I.thumbUrl===u?'on':''}" onclick="pickThumb('${u}')"><img src="${u}" alt="" referrerpolicy="no-referrer" onerror="this.closest('button').remove()"></button>`).join('')}</div><div class="help" style="margin-top:6px">Touche le moment qui montre le plat.</div>`:''}
+    ${L&&(L.platform==='tiktok'||L.platform==='instagram')?`<div class="help" style="margin-top:8px">💡 Pour montrer le plat : mets la vidéo en pause dessus, fais une capture, « Copier et supprimer », puis touche « Coller l'image ».</div>`:''}
     <div class="lbl">Nom <small>— quelques mots</small></div>
     <input class="field" id="i-name" value="${esc(I.title)}" placeholder="Ex : Carbonara sans crème" oninput="IDEA.title=this.value">
     <div class="lbl">Type</div>
@@ -849,7 +882,10 @@ async function saveIdea(){
       const name=`i-${it.id}-${uid(4)}${extOf(blob.type)}`; await putBlob(name,blob);
       if(it.photo){await phDel(it.photo);await phDel('t:'+it.photo);dropUrls(it.photo)}
       it.photo=name; it.thumbUrl=''; await ensureUrls(name);
-    }else if(!it.photo&&I.thumbUrl)it.thumbUrl=I.thumbUrl; // sinon on garde le lien de l'image (affichée tant qu'on est en ligne)
+    }else if(I.thumbUrl&&(I.thumbChanged||!it.photo)){ // pas de copie locale possible : on garde le lien de l'image
+      if(it.photo){await phDel(it.photo);await phDel('t:'+it.photo);dropUrls(it.photo);it.photo=null}
+      it.thumbUrl=I.thumbUrl;
+    } // sinon on garde le lien de l'image (affichée tant qu'on est en ligne)
     Object.assign(it,{url:I.L.url,platform:I.L.platform,title:I.title.trim()||'Sans nom',author:I.author,type:I.type,tags:[...I.tags]});
     if(isNew)D.ideas.push(it);
     IDEA=null; closeM(); await persist(); go('ideas'); toast(isNew?'💡 Envie enregistrée':'✓ Modifié');
