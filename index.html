@@ -42,6 +42,20 @@ h1{font-size:28px;margin:4px 0 2px;letter-spacing:-.5px}
 .search{display:flex;gap:8px;margin:10px 0 6px}
 .search input{flex:1;min-width:0;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);outline:none;font-size:16px}
 .search input:focus{border-color:var(--accent)}
+.modes,.dds{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.modes{margin:6px 0}.dds{margin-bottom:8px}
+.seg-b{padding:10px 4px;border-radius:12px;background:var(--chip);font-size:14px;font-weight:600}
+.seg-b.on{background:var(--accent);color:#fff}
+.dd{position:relative}
+.dd-b{width:100%;padding:10px 6px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);font-size:14px;white-space:nowrap}
+.dd-b.on{border-color:var(--accent);color:var(--accent);font-weight:700}
+.dd-p{position:absolute;top:calc(100% + 6px);left:0;min-width:210px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:6px;z-index:8}
+.dd.r .dd-p{left:auto;right:0}
+.dd-o{display:flex;align-items:center;gap:10px;width:100%;padding:11px 10px;text-align:left;border-radius:10px;font-size:16px}
+.dd-o:active{background:var(--chip)}
+.cb{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;font-size:14px;color:#fff;flex:none}
+.cb.on{background:var(--accent);border-color:var(--accent)}
+.dd-clear{width:100%;padding:10px;color:var(--muted);font-size:14px;border-top:1px solid var(--line);margin-top:4px}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;padding:8px 12px;border-radius:999px;background:var(--chip);font-size:14px;white-space:nowrap;border:1.5px solid transparent;transition:.15s}
@@ -149,6 +163,21 @@ nav .add{width:58px;height:58px;border-radius:50%;background:var(--accent);color
 .help code{background:var(--chip);padding:1px 5px;border-radius:5px;color:var(--ink)}
 .warn{background:#fff1e6;color:#8a3a10;border-radius:12px;padding:10px 12px;font-size:14px;margin-top:10px}
 @media (prefers-color-scheme: dark){.warn{background:#3a2316;color:#ffc9a6}}
+.pickrow{display:flex;gap:8px;margin:0 0 12px}
+.ic{aspect-ratio:9/14;cursor:pointer}
+.cover{position:absolute;inset:0;z-index:1}
+.ic .ov{pointer-events:none;z-index:2}
+.tl{position:absolute;top:8px;left:8px;display:flex;gap:4px;z-index:2}
+.pl{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800;color:#fff}
+.pl.yt{background:#e5241d}.pl.tt{background:#111}.pl.ig{background:linear-gradient(45deg,#f9a03f,#e1306c,#833ab4)}.pl.web{background:#555}.pl.ok{background:var(--good)}
+.more{position:absolute;top:6px;right:6px;z-index:3;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:18px;font-weight:800;line-height:1}
+.link{display:flex;gap:8px;align-items:center;background:var(--chip);border-radius:14px;padding:10px 12px;font-size:13px}
+.link .lk{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.chk{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.85);border:2px solid #fff;display:grid;place-items:center;color:#fff;font-weight:800;z-index:2}
+.chk.on{background:var(--accent)}
+.card.sel{outline:3px solid var(--accent);outline-offset:-3px}
+.selbar{position:fixed;left:16px;right:16px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:11;display:flex;gap:8px;background:var(--card);padding:10px;border-radius:18px;box-shadow:var(--shadow)}
+a.btn{display:block;text-align:center;text-decoration:none}
 .hidden{display:none!important}
 </style>
 </head>
@@ -163,23 +192,21 @@ nav .add{width:58px;height:58px;border-radius:50%;background:var(--accent);color
     </div>
     <div class="stats" id="stats"></div>
     <div id="banner"></div>
-    <div class="search"><input id="q" type="search" placeholder="Chercher un plat ou un ingrédient…"></div>
-    <div class="chips" id="f-type"></div>
-    <div class="chips" id="f-tags"></div>
+    <div class="search"><input id="q" type="search" placeholder="Chercher un plat ou un ingrédient…"><button class="btn ghost" onclick="startSelect()" style="padding:0 14px;font-size:14px;white-space:nowrap">🗓️ Menu</button></div>
+    <div class="modes" id="f-mode"></div>
+    <div class="dds" id="f-dd"></div>
   </div></header>
   <div class="wrap"><div class="grid" id="grid"></div></div>
 </section>
 
-<section id="v-swipe" class="hidden"><div class="wrap">
-  <header><h1>🗓️ Menu de la semaine</h1>
-    <div class="stats">Glisse à droite = je veux · à gauche = pas cette fois</div>
-    <div class="chips" id="sw-type"></div>
+<section id="v-ideas" class="hidden"><div class="wrap">
+  <header>
+    <h1>💡 À tester</h1>
+    <div class="stats" id="i-stats"></div>
+    <div class="modes" id="i-mode"></div>
+    <div class="pickrow"><button class="btn" style="flex:1" onclick="pickIdea()">🎲 Pioche-moi une envie</button><button class="btn ghost" onclick="openIdea()">＋ Lien</button></div>
   </header>
-  <div class="deck" id="deck"></div>
-  <div class="swbtns" id="swbtns">
-    <button class="round" onclick="swipeTop(false)">❌</button>
-    <button class="round" onclick="swipeTop(true)">💚</button>
-  </div>
+  <div class="grid" id="igrid"></div>
 </div></section>
 
 <section id="v-random" class="hidden"><div class="wrap">
@@ -199,7 +226,7 @@ nav .add{width:58px;height:58px;border-radius:50%;background:var(--accent);color
 
 <nav>
   <button data-v="home" class="on" onclick="go('home')"><span class="i">📖</span>Recettes</button>
-  <button data-v="swipe" onclick="go('swipe')"><span class="i">🗓️</span>Menu</button>
+  <button data-v="ideas" onclick="go('ideas')"><span class="i">💡</span>À tester</button>
   <button class="add" onclick="openForm()">＋</button>
   <button data-v="random" onclick="go('random')"><span class="i">🎲</span>Hasard</button>
   <button data-v="shop" onclick="go('shop')"><span class="i">🛒</span>Courses<span class="dot hidden" id="plan-dot"></span></button>
@@ -207,8 +234,10 @@ nav .add{width:58px;height:58px;border-radius:50%;background:var(--accent);color
 
 <div class="modal" id="m-detail" onclick="if(event.target===this)closeM()"><div class="sheet" id="detail"></div></div>
 <div class="modal" id="m-form" onclick="if(event.target===this)closeM()"><div class="sheet" id="form"></div></div>
+<div class="modal" id="m-idea" onclick="if(event.target===this)closeM()"><div class="sheet" id="idea"></div></div>
 <div class="modal" id="m-set" onclick="if(event.target===this)closeM()"><div class="sheet" id="set"></div></div>
 <div class="modal" id="m-conf"><div class="sheet" id="conf"></div></div>
+<div class="selbar hidden" id="selbar"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -218,10 +247,9 @@ nav .add{width:58px;height:58px;border-radius:50%;background:var(--accent);color
    ===================================================================== */
 const TYPES=[{id:'plat',e:'🍲',l:'Plat'},{id:'entree',e:'🥗',l:'Entrée'},{id:'dessert',e:'🍰',l:'Dessert'},{id:'snack',e:'🥨',l:'Snack'}];
 const CAL=[null,{e:'🪶',l:'Léger'},{e:'🍽️',l:'Normal'},{e:'🔥',l:'Copieux'}];
-const DEFAULT_TAGS=[
-  {id:'poisson',emoji:'🐟',label:'Poisson'},{id:'viande',emoji:'🥩',label:'Viande'},{id:'volaille',emoji:'🍗',label:'Volaille'},
-  {id:'vege',emoji:'🌱',label:'Végé'},{id:'legumes',emoji:'🥦',label:'Légumes'},{id:'feculents',emoji:'🍝',label:'Féculents'},
-  {id:'oeufs',emoji:'🥚',label:'Œufs'},{id:'fromage',emoji:'🧀',label:'Fromage'},{id:'epice',emoji:'🌶️',label:'Épicé'},{id:'rapide',emoji:'⚡',label:'Rapide'}];
+const TAGS=[{id:'poisson',emoji:'🐟',label:'Poisson'},{id:'viande',emoji:'🥩',label:'Viande'},{id:'vege',emoji:'🌱',label:'Végé'},
+  {id:'legumes',emoji:'🥦',label:'Légumes'},{id:'feculents',emoji:'🍝',label:'Féculents'},{id:'rapide',emoji:'⚡',label:'Rapide'}];
+const TAG_MIGRATE={volaille:'viande'}; // anciens tags : volaille -> viande, les autres disparaissent
 const DEFAULT_PANTRY=['sel','poivre',"huile d'olive"];
 const DAY=86400, PHOTO_MAX=1280, PHOTO_Q=0.72, THUMB_MAX=500;
 
@@ -230,13 +258,13 @@ let META={lastCommit:null,changes:0};     // état de synchro de cet appareil
 let CFG=null;                             // {owner, repo, branch, token}
 let URLS={};                              // nom photo -> {full, thumb} (object URLs)
 let SYNCING=false, lastAuto=0;
-let F={type:null,tags:new Set(),cal:null,fav:false,sort:'recent',q:''};
-let SW={type:'plat',queue:[]}, RD={type:'plat',tags:new Set()};
+let F={mode:'all',types:new Set(),cals:new Set(),tags:new Set(),q:'',open:null};
+let RD={type:'plat',tags:new Set()}, SEL={on:false,ids:new Set()}, IMODE='all', IDEA=null, LASTPICK=null;
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const jq=s=>esc(String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"));
-const tagOf=id=>D.tags.find(t=>t.id===id)||{id,emoji:'🏷️',label:id};
+const tagOf=id=>TAGS.find(t=>t.id===id)||{id,emoji:'🏷️',label:id};
 const typeOf=id=>TYPES.find(t=>t.id===id)||TYPES[0];
 const now=()=>Date.now()/1000;
 const uid=(n=10)=>Array.from(crypto.getRandomValues(new Uint8Array(n)),b=>'abcdefghijklmnopqrstuvwxyz0123456789'[b%36]).join('');
@@ -257,12 +285,13 @@ const phSet=(k,v)=>idbReq(store('photos','readwrite').put(v,k));
 const phDel=k=>idbReq(store('photos','readwrite').delete(k));
 const phKeys=()=>idbReq(store('photos').getAllKeys());
 
-function emptyData(){return {version:1,recipes:[],tags:DEFAULT_TAGS.map(t=>({...t})),pantry:[...DEFAULT_PANTRY],plan:[],checked:[]}}
+function emptyData(){return {version:1,recipes:[],ideas:[],pantry:[...DEFAULT_PANTRY],plan:[],checked:[]}}
 function normalize(d){
   d=d&&typeof d==='object'?d:{}; const e=emptyData();
-  for(const k of ['recipes','tags','pantry','plan','checked']) if(!Array.isArray(d[k])) d[k]=e[k];
-  d.version=1;
-  d.recipes.forEach(r=>{r.tags=r.tags||[];r.ingredients=r.ingredients||[];r.cooked=r.cooked||0;r.calories=r.calories||2;r.type=r.type||'plat';r.notes=r.notes||''});
+  for(const k of ['recipes','ideas','pantry','plan','checked']) if(!Array.isArray(d[k])) d[k]=e[k];
+  d.version=1; delete d.tags;
+  d.ideas.forEach(i=>{i.tags=Array.isArray(i.tags)?i.tags.filter(t=>TAGS.some(x=>x.id===t)):[];i.type=i.type||'plat';i.title=i.title||'';i.tested=!!i.tested});
+  d.recipes.forEach(r=>{r.tags=[...new Set((r.tags||[]).map(t=>TAG_MIGRATE[t]||t).filter(t=>TAGS.some(x=>x.id===t)))];r.ingredients=r.ingredients||[];r.cooked=r.cooked||0;r.calories=r.calories||2;r.type=r.type||'plat';r.notes=r.notes||''});
   return d;
 }
 // Toute modification passe par ici : sauvegarde locale + compteur "non synchronisé"
@@ -270,12 +299,15 @@ async function persist(){META.changes++;await kvSet('data',D);await kvSet('meta'
 
 /* ---------- ingrédients ---------- */
 const norm=s=>String(s).trim().toLowerCase().replace(/\s+/g,' ');
-function mergeKey(s){ // 'Tomates' == 'tomate', 'Épinards' == 'epinard'
-  s=norm(s).normalize('NFD').replace(/[̀-ͯ]/g,'');
-  return s.split(' ').map(w=>w.length>3&&/[sx]$/.test(w)&&!/(ss|us|is|as)$/.test(w)?w.slice(0,-1):w).join(' ');
-}
+// "Épinards" == "epinard", "œufs" == "oeufs", "à" == "a"…
+const fold=s=>String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/æ/g,'ae').replace(/[’‘]/g,"'").replace(/\s+/g,' ').trim();
+function mergeKey(s){return fold(s).split(' ').map(w=>w.length>3&&/[sx]$/.test(w)&&!/(ss|us|is|as)$/.test(w)?w.slice(0,-1):w).join(' ')}
 function cleanIngs(list){const out=[],seen=new Set();for(const it of list){const n=norm(it),k=mergeKey(n);if(n&&!seen.has(k)){seen.add(k);out.push(n)}}return out}
-const allIngredients=()=>[...new Set(D.recipes.flatMap(r=>r.ingredients).concat(D.pantry))].sort((a,b)=>a.localeCompare(b,'fr'));
+function allIngredients(){ // une seule entrée par ingrédient, on garde la version avec accents
+  const m=new Map(),acc=x=>/[^\x00-\x7f]/.test(x);
+  for(const i of D.recipes.flatMap(r=>r.ingredients).concat(D.pantry)){const k=mergeKey(i),c=m.get(k);if(!c||(!acc(c)&&acc(i)))m.set(k,i)}
+  return [...m.values()].sort((a,b)=>a.localeCompare(b,'fr'));
+}
 
 /* ---------- photos (WebP, repli JPEG si le navigateur ne sait pas encoder en WebP) ---------- */
 const mimeOf=n=>n.endsWith('.webp')?'image/webp':n.endsWith('.png')?'image/png':'image/jpeg';
@@ -300,10 +332,13 @@ async function ensureUrls(name){
   URLS[name]={full:URL.createObjectURL(full),thumb:URL.createObjectURL(th)};
 }
 function dropUrls(name){const u=URLS[name];if(u){URL.revokeObjectURL(u.full);URL.revokeObjectURL(u.thumb);delete URLS[name]}}
-async function loadPhotos(){Object.keys(URLS).forEach(dropUrls);await Promise.all(D.recipes.filter(r=>r.photo).map(r=>ensureUrls(r.photo).catch(console.error)))}
+const photoNames=d=>[...d.recipes,...d.ideas].map(x=>x.photo).filter(Boolean);
+async function loadPhotos(){Object.keys(URLS).forEach(dropUrls);await Promise.all(photoNames(D).map(n=>ensureUrls(n).catch(console.error)))}
 function photoHTML(r,full){
   const u=r.photo&&URLS[r.photo];
-  return u?`<img src="${full?u.full:u.thumb}" alt="">`:`<div class="ph ${r.type}">${typeOf(r.type).e}</div>`;
+  if(u)return `<img src="${full?u.full:u.thumb}" alt="">`;
+  if(r.thumbUrl&&/^https?:/.test(r.thumbUrl))return `<img src="${esc(r.thumbUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph ${r.type}',textContent:'${typeOf(r.type).e}'}))">`;
+  return `<div class="ph ${r.type}">${typeOf(r.type).e}</div>`;
 }
 
 /* =====================================================================
@@ -347,7 +382,7 @@ const status=t=>{$('#sync-btn').title=t;if(t)toast(t,60000)};
 async function pull(head){
   const {files}=await getTree(head);
   const data=normalize(files['recettes.json']?JSON.parse(new TextDecoder().decode(await readBlob(files['recettes.json']))):emptyData());
-  const need=[...new Set(data.recipes.map(r=>r.photo).filter(Boolean))];
+  const need=[...new Set(photoNames(data))];
   const have=new Set(await phKeys());
   const todo=need.filter(n=>!have.has(n)&&files['photos/'+n]);
   let i=0;
@@ -367,7 +402,7 @@ async function push(head){
   const entries=[];
   const jb=await gh('/git/blobs',{method:'POST',body:{content:utf8B64(JSON.stringify(D,null,1)),encoding:'base64'}});
   entries.push({path:'recettes.json',mode:'100644',type:'blob',sha:jb.sha});
-  const local=new Set(D.recipes.map(r=>r.photo).filter(Boolean));
+  const local=new Set(photoNames(D));
   const todo=[...local].filter(n=>!files['photos/'+n]); // les photos ont un nom unique : déjà là = identique
   let i=0;
   for(const n of todo){
@@ -429,7 +464,7 @@ async function sync(auto=false){
   }catch(e){console.error(e);toast(errMsg(e),3500)}
   finally{SYNCING=false;$('#sync-btn').classList.remove('spin');$('#sync-btn').title='Synchroniser';renderAll();refreshOpenViews()}
 }
-function refreshOpenViews(){if(!$('#v-shop').classList.contains('hidden'))renderShop();if(!$('#v-swipe').classList.contains('hidden'))buildDeck()}
+function refreshOpenViews(){if(!$('#v-shop').classList.contains('hidden'))renderShop();if(!$('#v-ideas').classList.contains('hidden'))renderIdeas()}
 document.addEventListener('visibilitychange',()=>{ // pull auto en revenant dans l'appli
   if(document.visibilityState==='visible'&&Date.now()-lastAuto>60000){lastAuto=Date.now();sync(true)}
 });
@@ -480,7 +515,7 @@ function go(v){
   document.querySelectorAll('section').forEach(s=>s.classList.add('hidden'));
   $('#v-'+v).classList.remove('hidden');
   document.querySelectorAll('nav [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
-  if(v==='swipe')buildDeck(); if(v==='shop')renderShop(); if(v==='random')renderRandomFilters();
+  if(v!=='home'&&SEL.on){SEL.on=false;renderAll()} if(v==='ideas')renderIdeas(); if(v==='shop')renderShop(); if(v==='random')renderRandomFilters();
   scrollTo(0,0);
 }
 function emojis(r){return [typeOf(r.type).e,CAL[r.calories]?.e,...r.tags.map(t=>tagOf(t).emoji)].filter(Boolean).join(' ')}
@@ -488,7 +523,7 @@ function forgotten(r){return now()-(r.last_cooked||r.created)>30*DAY}
 function chip(on,html,fn){return `<button class="chip ${on?'on':''}" onclick="${fn}">${html}</button>`}
 
 /* ---------- accueil ---------- */
-function renderAll(){renderStats();renderFilters();renderGrid();updateBadges()}
+function renderAll(){renderStats();renderFilters();renderGrid();updateBadges();renderSelBar();if(!$('#v-ideas').classList.contains('hidden'))renderIdeas()}
 function updateBadges(){
   const d=$('#plan-dot');d.textContent=D.plan.length;d.classList.toggle('hidden',!D.plan.length);
   const n=$('#sync-n');n.textContent=META.changes>99?'99+':META.changes;n.classList.toggle('hidden',!CFG||!META.changes);
@@ -499,32 +534,48 @@ function renderStats(){
   $('#banner').innerHTML=CFG?'':`<button class="banner" onclick="openSettings()">☁️<span><b>Sauvegarde non configurée.</b> Si tu supprimes l'appli, tu perds tout. Touche pour connecter GitHub.</span></button>`;
 }
 function renderFilters(){
-  $('#f-type').innerHTML=chip(!F.type,'Tout',"F.type=null;renderAll()")+
-    TYPES.map(t=>chip(F.type===t.id,`${t.e} ${t.l}`,`F.type=F.type==='${t.id}'?null:'${t.id}';renderAll()`)).join('')+
-    CAL.slice(1).map((c,i)=>chip(F.cal===i+1,`${c.e} ${c.l}`,`F.cal=F.cal===${i+1}?null:${i+1};renderAll()`)).join('');
-  const used=new Set(D.recipes.flatMap(r=>r.tags));
-  $('#f-tags').innerHTML=chip(F.fav,'⭐ Favoris',"F.fav=!F.fav;renderAll()")+
-    `<select class="chip" onchange="F.sort=this.value;renderGrid()">
-      <option value="recent" ${F.sort==='recent'?'selected':''}>🆕 Récents</option>
-      <option value="forgot" ${F.sort==='forgot'?'selected':''}>💤 Oubliés</option>
-      <option value="top" ${F.sort==='top'?'selected':''}>🏆 Les + cuisinés</option>
-      <option value="az" ${F.sort==='az'?'selected':''}>🔤 A → Z</option></select>`+
-    D.tags.filter(t=>used.has(t.id)).map(t=>chip(F.tags.has(t.id),`${t.emoji} ${esc(t.label)}`,`toggleSet(F.tags,'${jq(t.id)}');renderAll()`)).join('');
+  const m=(id,l)=>`<button class="seg-b ${F.mode===id?'on':''}" onclick="F.mode='${id}';renderAll()">${l}</button>`;
+  $('#f-mode').innerHTML=m('all','Tout')+m('fav','⭐ Favoris')+m('recent','🆕 Récents');
+  const dd=(key,label,opts,set)=>{
+    const n=set.size,open=F.open===key;
+    return `<div class="dd ${key==='tags'?'r':''}"><button class="dd-b ${n?'on':''}" onclick="toggleDD('${key}')">${label}${n?' · '+n:''} ${open?'▴':'▾'}</button>
+      ${open?`<div class="dd-p">${opts.map(o=>`<button class="dd-o" onclick="toggleOpt('${key}','${o.id}')"><span class="cb ${set.has(o.id)?'on':''}">${set.has(o.id)?'✓':''}</span>${o.emoji} ${esc(o.label)}</button>`).join('')}${n?`<button class="dd-clear" onclick="clearDD('${key}')">Tout décocher</button>`:''}</div>`:''}</div>`;
+  };
+  $('#f-dd').innerHTML=dd('types','Type',TYPES.map(t=>({id:t.id,emoji:t.e,label:t.l})),F.types)
+    +dd('cals','Calories',CAL.slice(1).map((c,i)=>({id:i+1,emoji:c.e,label:c.l})),F.cals)
+    +dd('tags','Tags',TAGS.map(t=>({id:t.id,emoji:t.emoji,label:t.label})),F.tags);
 }
+const fset=k=>({types:F.types,cals:F.cals,tags:F.tags}[k]);
+function toggleDD(k){F.open=F.open===k?null:k;renderFilters()}
+function toggleOpt(k,id){toggleSet(fset(k),k==='cals'?Number(id):id);renderAll()}
+function clearDD(k){fset(k).clear();renderAll()}
+document.addEventListener('click',e=>{ // clic en dehors = ferme la liste
+  if(F.open&&!e.composedPath().some(el=>el.classList&&el.classList.contains('dd'))){F.open=null;renderFilters()}
+});
 function filtered(){
-  const q=F.q.trim().toLowerCase();
-  const L=D.recipes.filter(r=>(!F.type||r.type===F.type)&&(!F.cal||r.calories===F.cal)&&(!F.fav||r.favorite)
-    &&[...F.tags].every(t=>r.tags.includes(t))&&(!q||r.name.toLowerCase().includes(q)||r.ingredients.some(i=>i.includes(q))));
-  const k={recent:(a,b)=>b.created-a.created,forgot:(a,b)=>(a.last_cooked||0)-(b.last_cooked||0),
-    top:(a,b)=>b.cooked-a.cooked,az:(a,b)=>a.name.localeCompare(b.name,'fr')}[F.sort];
-  return L.sort(k);
+  const q=fold(F.q);
+  const L=D.recipes.filter(r=>(F.mode!=='fav'||r.favorite)&&(!F.types.size||F.types.has(r.type))&&(!F.cals.size||F.cals.has(r.calories))
+    &&[...F.tags].every(t=>r.tags.includes(t))&&(!q||fold(r.name).includes(q)||r.ingredients.some(i=>fold(i).includes(q))));
+  return L.sort(F.mode==='recent'?(a,b)=>b.created-a.created:(a,b)=>a.name.localeCompare(b.name,'fr'));
 }
 function cardHTML(r,style=''){
-  const inPlan=D.plan.includes(r.id);
-  return `<button class="card" style="${style}" onclick="openDetail('${r.id}')">${photoHTML(r)}
+  const inPlan=D.plan.includes(r.id),sel=SEL.on&&SEL.ids.has(r.id);
+  return `<button class="card ${sel?'sel':''}" style="${style}" onclick="${SEL.on?`toggleSel('${r.id}')`:`openDetail('${r.id}')`}">${photoHTML(r)}
     ${r.favorite?'<span class="badge l">⭐</span>':forgotten(r)?'<span class="badge l">💤</span>':''}
-    ${inPlan?'<span class="badge r">🗓️ au menu</span>':r.cooked?`<span class="badge r" style="background:rgba(0,0,0,.45)">🍳×${r.cooked}</span>`:''}
+    ${SEL.on?`<span class="chk ${sel?'on':''}">${sel?'✓':''}</span>`:inPlan?'<span class="badge r">🗓️ au menu</span>':r.cooked?`<span class="badge r" style="background:rgba(0,0,0,.45)">🍳×${r.cooked}</span>`:''}
     <div class="ov"><div class="nm">${esc(r.name)}</div><div class="em">${emojis(r)}</div></div></button>`;
+}
+function startSelect(){if(SEL.on)return;SEL.on=true;SEL.ids=new Set(D.plan);renderAll();toast('Touche les plats à mettre au menu',2500)}
+function toggleSel(id){toggleSet(SEL.ids,id);renderGrid();renderSelBar()}
+function cancelSel(){SEL.on=false;renderAll()}
+async function applySel(){
+  const ids=SEL.ids,known=new Set(D.recipes.map(r=>r.id));
+  D.plan=[...D.plan.filter(i=>ids.has(i)),...[...ids].filter(i=>!D.plan.includes(i))].filter(i=>known.has(i));
+  SEL.on=false; await persist(); go('shop'); toast(`🗓️ ${D.plan.length} plat${D.plan.length>1?'s':''} au menu`);
+}
+function renderSelBar(){
+  const b=$('#selbar'); b.classList.toggle('hidden',!SEL.on);
+  if(SEL.on)b.innerHTML=`<button class="btn ghost" onclick="cancelSel()">✕</button><button class="btn" style="flex:1" onclick="applySel()">✓ Valider le menu · ${SEL.ids.size}</button>`;
 }
 function renderGrid(){
   if(!D.recipes.length){$('#grid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="big">📸</div><p>Ton carnet est vide.<br>Prends ton prochain plat en photo et ajoute-le.</p><button class="btn" onclick="openForm()">＋ Ajouter mon premier plat</button></div>`;return}
@@ -550,6 +601,7 @@ function openDetail(id){
     <div class="lbl">Ingrédients</div>
     <div class="ings">${r.ingredients.map(i=>`<span class="chip">${esc(i)}</span>`).join('')||'<span class="stats">—</span>'}</div>
     ${r.notes?`<div class="lbl">Notes</div><div class="notes">${esc(r.notes)}</div>`:''}
+    ${r.source?`<div class="lbl">Source</div><a class="chip" style="text-decoration:none;display:inline-block" href="${esc(safeUrl(r.source))}" target="_blank" rel="noopener">${(PLAT[parseLink(r.source)?.platform]||PLAT.web).icon} Voir la vidéo</a>`:''}
     <div class="acts">
       <button class="btn ${inPlan?'ghost':''}" onclick="togglePlan('${id}')">${inPlan?'✓ Au menu':'🗓️ Ajouter au menu'}</button>
       <button class="btn good" onclick="cooked('${id}')">🍳 Je l'ai cuisiné</button>
@@ -582,10 +634,12 @@ async function del(id){
 
 /* ---------- formulaire ---------- */
 let E=null;
-function openForm(id){
+function openForm(id,pre){
   const r=id?D.recipes.find(x=>x.id===id):null;
-  E={id:id||null,name:r?.name||'',type:r?.type||'plat',calories:r?.calories||2,tags:new Set(r?.tags||[]),
-     ingredients:[...(r?.ingredients||[])],notes:r?.notes||'',file:null,preview:r?.photo&&URLS[r.photo]?URLS[r.photo].full:null,newTags:[]};
+  E={id:id||null,name:r?.name||pre?.name||'',type:r?.type||pre?.type||'plat',calories:r?.calories||2,tags:new Set(r?.tags||pre?.tags||[]),
+     ingredients:[...(r?.ingredients||[])],notes:r?.notes||'',file:null,source:r?.source||pre?.source||'',
+     fromIdea:pre?.fromIdea||null,copyPhoto:pre?.photo||null,copyUrl:pre?.thumbUrl||null,
+     preview:r?.photo&&URLS[r.photo]?URLS[r.photo].full:(pre?.photo&&URLS[pre.photo]?URLS[pre.photo].full:pre?.thumbUrl||null)};
   renderForm(); closeM(); $('#m-form').classList.add('open'); $('#form').scrollTop=0;
 }
 function renderForm(){
@@ -595,6 +649,7 @@ function renderForm(){
       ${E.preview?`<img src="${E.preview}">`:'<div class="hint"><b>📷</b>Prendre / choisir une photo</div>'}
       <input type="file" accept="image/*" hidden onchange="pickPhoto(this)">
     </label>
+    ${E.fromIdea?'<div class="help" style="margin-top:6px">📹 Image de la vidéo. Remplace-la par la photo de TON plat quand tu l\'as fait.</div>':''}
     <div class="lbl">Nom du plat</div>
     <input class="field" id="e-name" value="${esc(E.name)}" placeholder="Ex : Saumon teriyaki" oninput="E.name=this.value">
     <div class="lbl">Type</div>
@@ -602,8 +657,7 @@ function renderForm(){
     <div class="lbl">Calories</div>
     <div class="seg c3">${CAL.slice(1).map((c,i)=>`<button class="${E.calories===i+1?'on':''}" onclick="E.calories=${i+1};renderForm()"><b>${c.e}</b>${c.l}</button>`).join('')}</div>
     <div class="lbl">Tags</div>
-    <div class="tagwrap">${D.tags.concat(E.newTags).map(t=>chip(E.tags.has(t.id),`${t.emoji} ${esc(t.label)}`,`toggleSet(E.tags,'${jq(t.id)}');renderForm()`)).join('')}
-      <button class="chip" onclick="newTag()">＋ tag</button></div>
+    <div class="tagwrap">${TAGS.map(t=>chip(E.tags.has(t.id),`${t.emoji} ${esc(t.label)}`,`toggleSet(E.tags,'${t.id}');renderForm()`)).join('')}</div>
     <div class="lbl">Ingrédients <small>— tape puis Entrée</small></div>
     <div class="ings" style="margin-bottom:8px">${E.ingredients.map((i,k)=>`<button class="chip" onclick="E.ingredients.splice(${k},1);renderForm()">${esc(i)}<span class="x">✕</span></button>`).join('')}</div>
     <div class="ingbox"><input class="field" id="e-ing" placeholder="tomate, riz, citron…" autocomplete="off" autocorrect="off" enterkeyhint="enter">
@@ -623,18 +677,11 @@ function addIng(v,keepFocus=true){
   const sc=$('#form').scrollTop; renderForm(); $('#form').scrollTop=sc; if(keepFocus)$('#e-ing').focus();
 }
 function suggest(v){
-  const q=v.trim().toLowerCase(),box=$('#sugg');
+  const q=fold(v),box=$('#sugg');
   if(!q){box.style.display='none';return}
-  const L=allIngredients().filter(i=>i.includes(q)&&!E.ingredients.includes(i)).sort((a,b)=>a.indexOf(q)-b.indexOf(q)).slice(0,6);
+  const L=allIngredients().filter(i=>fold(i).includes(q)&&!E.ingredients.some(x=>mergeKey(x)===mergeKey(i))).sort((a,b)=>fold(a).indexOf(q)-fold(b).indexOf(q)).slice(0,6);
   box.innerHTML=L.map(i=>`<button onmousedown="event.preventDefault()" onclick="addIng('${jq(i)}')">${esc(i)}</button>`).join('');
   box.style.display=L.length?'block':'none';
-}
-function newTag(){
-  const l=prompt('Nom du nouveau tag (ex : Asiatique)'); if(!l||!l.trim())return;
-  const e=prompt('Un emoji pour ce tag ? (optionnel)','🏷️')||'🏷️';
-  const id=l.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||uid(6);
-  if(!D.tags.concat(E.newTags).some(t=>t.id===id))E.newTags.push({id,emoji:e.trim(),label:l.trim()});
-  E.tags.add(id); renderForm();
 }
 async function saveForm(){
   const pending=$('#e-ing').value; if(pending.trim())addIng(pending,false);
@@ -649,51 +696,170 @@ async function saveForm(){
       await putBlob(name,full);
       if(r.photo){await phDel(r.photo);await phDel('t:'+r.photo);dropUrls(r.photo)}
       r.photo=name; await ensureUrls(name);
+    }else if(isNew&&(E.copyPhoto||E.copyUrl)){ // image reprise de l'envie
+      let b=E.copyPhoto?await blobOf(E.copyPhoto):null;
+      if(!b&&E.copyUrl){try{b=await fetchImg(E.copyUrl)}catch(_){}}
+      if(b){const name=`${r.id}-${uid(4)}${extOf(b.type)}`;await putBlob(name,b);r.photo=name;await ensureUrls(name)}
     }
-    Object.assign(r,{name:E.name.trim(),type:E.type,calories:E.calories,tags:[...E.tags],ingredients:cleanIngs(E.ingredients),notes:E.notes.trim()});
-    for(const t of E.newTags) if(!D.tags.some(x=>x.id===t.id)) D.tags.push(t);
+    Object.assign(r,{name:E.name.trim(),type:E.type,calories:E.calories,tags:[...E.tags],ingredients:cleanIngs(E.ingredients),notes:E.notes.trim(),source:E.source||''});
     if(isNew)D.recipes.push(r);
+    if(isNew&&E.fromIdea){const it=D.ideas.find(x=>x.id===E.fromIdea);if(it){it.tested=true;it.recipeId=r.id;it.tested_at=now()}}
     await persist(); toast(isNew?`🎉 Plat n°${D.recipes.length} ajouté !`:'✓ Modifié'); openDetail(r.id);
   }catch(e){console.error(e);toast('❌ '+(e.message||'Erreur'));b.disabled=false;b.textContent='💾 Enregistrer'}
 }
 
-/* ---------- menu (swipe) ---------- */
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
-function buildDeck(){
-  $('#sw-type').innerHTML=TYPES.map(t=>chip(SW.type===t.id,`${t.e} ${t.l}`,`SW.type='${t.id}';buildDeck()`)).join('');
-  const L=D.recipes.filter(r=>r.type===SW.type&&!D.plan.includes(r.id));
-  SW.queue=[...shuffle(L.filter(forgotten)),...shuffle(L.filter(r=>!forgotten(r)))]; // les oubliés d'abord
-  renderDeck();
+/* ---------- À tester (envies) ---------- */
+const PLAT={youtube:{icon:'▶',label:'YouTube',cls:'yt'},tiktok:{icon:'♪',label:'TikTok',cls:'tt'},instagram:{icon:'📷',label:'Instagram',cls:'ig'},web:{icon:'🔗',label:'Lien',cls:'web'}};
+const safeUrl=u=>/^https?:\/\//i.test(u||'')?u:'#';
+const cleanTitle=t=>String(t).replace(/#[\p{L}\p{N}_]+/gu,'').replace(/\s+/g,' ').trim().slice(0,70);
+function parseLink(u){
+  let url; try{url=new URL(String(u).trim())}catch(_){return null}
+  if(!/^https?:$/.test(url.protocol))return null;
+  const h=url.hostname.replace(/^(www|m|vm|vt)\./,''); let p='web',yt=null;
+  if(/(^|\.)youtube\.com$/.test(h)||h==='youtu.be'){p='youtube';
+    yt=h==='youtu.be'?url.pathname.slice(1).split('/')[0]:(url.searchParams.get('v')||(url.pathname.match(/^\/(shorts|embed|live)\/([\w-]{6,})/)||[])[2]||null)}
+  else if(/(^|\.)tiktok\.com$/.test(h))p='tiktok';
+  else if(/(^|\.)instagram\.com$/.test(h)||h==='instagr.am')p='instagram';
+  // on retire les paramètres de suivi (igsh, utm, si…) : même vidéo = même lien
+  if(p==='instagram'||p==='tiktok'){url.search='';url.hash=''}
+  else if(p==='youtube'){const v=url.searchParams.get('v');url.search=v?'?v='+v:'';url.hash=''}
+  return {url:url.href,platform:p,yt,host:h};
 }
-function renderDeck(){
-  const top=SW.queue.slice(0,2).reverse();
-  $('#swbtns').classList.toggle('hidden',!top.length);
-  if(!top.length){
-    $('#deck').innerHTML=`<div class="empty"><div class="big">${D.plan.length?'✅':'🍽️'}</div>
-      <p>${D.plan.length?`${D.plan.length} plat(s) au menu.`:'Plus rien à proposer ici.'}</p>
-      ${D.plan.length?`<button class="btn" onclick="go('shop')">🛒 Voir ma liste de courses</button>`:''}</div>`;return}
-  $('#deck').innerHTML=top.map((r,i)=>`<div class="sw" data-id="${r.id}" style="${i===0&&top.length>1?'transform:scale(.95) translateY(10px)':''}">
-    ${photoHTML(r,true)}<div class="stamp yes">MIAM</div><div class="stamp no">NOPE</div>
-    <div class="ov"><div class="nm">${esc(r.name)}</div><div class="em">${emojis(r)}${forgotten(r)?' · 💤 pas mangé depuis longtemps':''}</div></div></div>`).join('');
-  const el=$('#deck').lastElementChild; let x0=null,dx=0;
-  el.onpointerdown=e=>{x0=e.clientX;el.setPointerCapture(e.pointerId);el.style.transition='none'};
-  el.onpointermove=e=>{if(x0===null)return;dx=e.clientX-x0;el.style.transform=`translateX(${dx}px) rotate(${dx/15}deg)`;
-    el.querySelector('.yes').style.opacity=Math.max(0,dx/100);el.querySelector('.no').style.opacity=Math.max(0,-dx/100)};
-  el.onpointerup=el.onpointercancel=()=>{x0=null;if(Math.abs(dx)>90)fly(el,dx>0);else{el.style.transition='.25s';el.style.transform='';el.querySelectorAll('.stamp').forEach(s=>s.style.opacity=0)}dx=0};
+async function timed(fn,ms=6000){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);try{return await fn(c.signal)}finally{clearTimeout(t)}}
+const fetchJSON=u=>timed(async sig=>{const r=await fetch(u,{signal:sig});if(!r.ok)throw new Error(r.status);return r.json()});
+const fetchImg=u=>timed(async sig=>{const r=await fetch(u,{signal:sig});if(!r.ok)throw new Error(r.status);const b=await r.blob();if(!/^image\//.test(b.type))throw new Error('pas une image');return resize(b,PHOTO_MAX,PHOTO_Q)});
+async function lookupMeta(L){ // meilleur effort : un échec (blocage du site, réseau) n'empêche jamais d'enregistrer
+  const out={title:'',author:'',thumbUrl:''};
+  try{
+    if(L.platform==='youtube'){
+      if(L.yt)out.thumbUrl=`https://i.ytimg.com/vi/${L.yt}/hqdefault.jpg`;
+      const j=await fetchJSON('https://www.youtube.com/oembed?format=json&url='+encodeURIComponent(L.url));
+      out.title=j.title||'';out.author=j.author_name||'';out.thumbUrl=j.thumbnail_url||out.thumbUrl;
+    }else if(L.platform==='tiktok'){
+      const j=await fetchJSON('https://www.tiktok.com/oembed?url='+encodeURIComponent(L.url));
+      out.title=j.title||'';out.author=j.author_name||'';out.thumbUrl=j.thumbnail_url||'';
+    }
+  }catch(e){console.warn('meta:',e.message)}
+  return out;
 }
-function swipeTop(yes){const el=$('#deck .sw:last-child');if(el)fly(el,yes)}
-function fly(el,yes){
-  el.style.transition='.3s';el.style.transform=`translateX(${yes?600:-600}px) rotate(${yes?30:-30}deg)`;
-  el.querySelector(yes?'.yes':'.no').style.opacity=1;
-  const id=el.dataset.id; SW.queue=SW.queue.filter(r=>r.id!==id);
-  if(yes){D.plan.push(id);persist();toast(`💚 ${D.plan.length} au menu`)}
-  setTimeout(renderDeck,250);
+function renderIdeas(){
+  const todo=D.ideas.filter(i=>!i.tested).length,done=D.ideas.length-todo;
+  $('#i-stats').innerHTML=`<span>🔖 ${todo} envie${todo>1?'s':''}</span><span>✅ ${done} testée${done>1?'s':''}</span>`;
+  const m=(id,l)=>`<button class="seg-b ${IMODE===id?'on':''}" onclick="IMODE='${id}';renderIdeas()">${l}</button>`;
+  $('#i-mode').innerHTML=m('all','Tout')+m('todo','💡 À tester')+m('done','✅ Testées');
+  const L=D.ideas.filter(i=>IMODE==='all'||(IMODE==='todo')===!i.tested).sort((a,b)=>(a.tested-b.tested)||b.created-a.created);
+  $('#igrid').innerHTML=!D.ideas.length
+    ?`<div class="empty" style="grid-column:1/-1"><div class="big">💡</div><p>Une recette vue sur Instagram, TikTok ou YouTube ?<br>Copie son lien, puis touche « ＋ Lien ».</p><button class="btn" onclick="openIdea()">＋ Ajouter un lien</button></div>`
+    :L.length?L.map(ideaCard).join(''):`<div class="empty" style="grid-column:1/-1"><div class="big">🤷</div><p>Rien ici.</p></div>`;
+}
+function ideaCard(it){
+  const P=PLAT[it.platform]||PLAT.web,em=[typeOf(it.type).e,...it.tags.map(t=>tagOf(t).emoji)].join(' ');
+  return `<div class="card ic">${photoHTML(it)}<a class="cover" href="${esc(safeUrl(it.url))}" target="_blank" rel="noopener" aria-label="Ouvrir la vidéo"></a>
+    <div class="tl"><span class="pl ${P.cls}">${P.icon} ${P.label}</span>${it.tested?'<span class="pl ok">✅</span>':''}</div>
+    <button class="more" onclick="openIdeaSheet('${it.id}')" aria-label="Actions">⋯</button>
+    <div class="ov"><div class="nm">${esc(it.title)}</div><div class="em">${it.author?esc(it.author)+' · ':''}${em}</div></div></div>`;
+}
+function pickIdea(){
+  const L=D.ideas.filter(i=>!i.tested);
+  if(!L.length){toast('Aucune envie à tester : ajoute un lien 💡');return}
+  const c=L.filter(i=>i.id!==LASTPICK),pool=c.length?c:L,it=pool[Math.random()*pool.length|0];
+  LASTPICK=it.id; openIdeaSheet(it.id,true);
+}
+function openIdeaSheet(id,dice){
+  const it=D.ideas.find(x=>x.id===id); if(!it)return;
+  const P=PLAT[it.platform]||PLAT.web,rec=it.recipeId&&D.recipes.some(r=>r.id===it.recipeId);
+  $('#idea').innerHTML=`<div class="hero">${photoHTML(it,true)}<button class="close" onclick="closeM()">✕</button></div>
+  <div class="sec"><h2>${esc(it.title)}</h2>
+    <div class="ings" style="margin-top:6px"><span class="chip sm">${P.icon} ${P.label}</span>${it.author?`<span class="chip sm">${esc(it.author)}</span>`:''}
+      <span class="chip sm">${typeOf(it.type).e} ${typeOf(it.type).l}</span>${it.tags.map(t=>`<span class="chip sm">${tagOf(t).emoji} ${esc(tagOf(t).label)}</span>`).join('')}</div>
+    <div class="acts" style="grid-template-columns:1fr">
+      <a class="btn" href="${esc(safeUrl(it.url))}" target="_blank" rel="noopener">▶ Ouvrir la vidéo</a>
+      ${rec?`<button class="btn good" onclick="openDetail('${it.recipeId}')">📖 Voir ma recette</button>`:`<button class="btn good" onclick="testIdea('${it.id}')">✅ Je l'ai testé</button>`}
+    </div>
+    <div class="acts">${dice?`<button class="btn ghost" onclick="pickIdea()">🎲 Une autre</button>`:`<button class="btn ghost" onclick="openIdea('${it.id}')">✏️ Modifier</button>`}
+      <button class="btn ghost" style="color:var(--bad)" onclick="delIdea('${it.id}')">🗑️ Supprimer</button></div></div>`;
+  closeM(); $('#m-idea').classList.add('open');
+}
+function testIdea(id){const it=D.ideas.find(x=>x.id===id);if(it)openForm(null,{name:it.title==='Sans nom'?'':it.title,type:it.type,tags:it.tags,source:it.url,fromIdea:it.id,photo:it.photo,thumbUrl:it.thumbUrl})}
+async function delIdea(id){
+  const it=D.ideas.find(x=>x.id===id); if(!it||!confirm(`Supprimer « ${it.title} » ?`))return;
+  if(it.photo){await phDel(it.photo);await phDel('t:'+it.photo);dropUrls(it.photo)}
+  D.ideas=D.ideas.filter(x=>x.id!==id); closeM(); await persist(); toast('Supprimé');
+}
+/* formulaire d'envie */
+function openIdea(id){
+  const it=id&&D.ideas.find(x=>x.id===id);
+  IDEA={id:it?.id||null,url:it?.url||'',L:it?parseLink(it.url):null,title:it?.title||'',author:it?.author||'',type:it?.type||'plat',tags:new Set(it?.tags||[]),
+    file:null,blob:null,thumbUrl:it?.thumbUrl||'',loading:false,seq:0,
+    preview:it?(it.photo&&URLS[it.photo]?URLS[it.photo].full:it.thumbUrl||null):null};
+  closeM(); renderIdea(); $('#m-idea').classList.add('open'); $('#idea').scrollTop=0;
+  if(!it)pasteLink(true); // lit le presse-papiers (iOS demande confirmation)
+}
+async function pasteLink(silent){
+  try{const m=(await navigator.clipboard.readText()).match(/https?:\/\/\S+/);
+    if(m)setLink(m[0]); else if(!silent)toast('Aucun lien dans le presse-papiers')}
+  catch(e){if(!silent)toast('Colle le lien dans le champ')}
+}
+async function setLink(u){
+  const L=parseLink(u); if(!L){if(String(u).trim())toast('Lien invalide');return}
+  const me=IDEA; if(!me)return;
+  if(D.ideas.some(i=>i.url===L.url&&i.id!==me.id))toast('⚠️ Ce lien est déjà dans ta liste',2600);
+  me.url=L.url; me.L=L; me.loading=L.platform==='youtube'||L.platform==='tiktok'; const seq=++me.seq; renderIdea();
+  if(!me.loading)return;
+  const m=await lookupMeta(L);
+  if(IDEA!==me||me.seq!==seq)return;
+  me.loading=false;
+  if(m.title&&!me.title)me.title=cleanTitle(m.title);
+  if(m.author)me.author=m.author;
+  if(m.thumbUrl&&!me.file){me.thumbUrl=m.thumbUrl;me.preview=m.thumbUrl}
+  renderIdea();
+  if(m.thumbUrl&&!me.file){try{const b=await fetchImg(m.thumbUrl);if(IDEA===me&&me.seq===seq)me.blob=b}catch(e){console.warn('copie image:',e.message)}} // copie locale si le site l'autorise
+}
+function pickIdeaPhoto(inp){const f=inp.files[0];if(!f)return;IDEA.file=f;IDEA.preview=URL.createObjectURL(f);reIdea()}
+function reIdea(){const sc=$('#idea').scrollTop;renderIdea();$('#idea').scrollTop=sc}
+function renderIdea(){
+  const I=IDEA,L=I.L,P=L&&PLAT[L.platform];
+  const msg=I.loading?'⏳ Recherche de l\'image…':!L?'Ajoute une capture de la vidéo':L.platform==='instagram'?'Instagram ne donne pas l\'image :<br>ajoute une capture de la vidéo':'Touche pour ajouter une capture';
+  $('#idea').innerHTML=`<div class="sec"><button class="close lt" onclick="closeM()">✕</button>
+    <h2>${I.id?'✏️ Modifier':'💡 Nouvelle envie'}</h2>
+    <div class="lbl">Lien</div>
+    ${L?`<div class="link"><span class="pl ${P.cls}">${P.icon} ${P.label}</span><span class="lk">${esc(L.url)}</span><button onclick="IDEA.L=null;IDEA.url='';IDEA.seq++;IDEA.loading=false;reIdea()">✕</button></div>`
+       :`<div class="search" style="margin:0"><input class="field" id="i-url" placeholder="Colle le lien de la vidéo" autocapitalize="off" autocorrect="off" onchange="setLink(this.value)" onpaste="setTimeout(()=>setLink(this.value),0)"><button class="btn ghost" onclick="pasteLink(false)">📋 Coller</button></div>`}
+    <div class="lbl">Image</div>
+    <label class="pick"><div class="hint"><b>${I.loading?'⏳':'📸'}</b>${msg}</div>
+      ${I.preview?`<img src="${esc(I.preview)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}
+      <input type="file" accept="image/*" hidden onchange="pickIdeaPhoto(this)"></label>
+    ${I.preview?'<div class="help" style="margin-top:6px">Touche l\'image pour la remplacer par une capture.</div>':''}
+    <div class="lbl">Nom <small>— quelques mots</small></div>
+    <input class="field" id="i-name" value="${esc(I.title)}" placeholder="Ex : Carbonara sans crème" oninput="IDEA.title=this.value">
+    <div class="lbl">Type</div>
+    <div class="seg">${TYPES.map(t=>`<button class="${I.type===t.id?'on':''}" onclick="IDEA.type='${t.id}';reIdea()"><b>${t.e}</b>${t.l}</button>`).join('')}</div>
+    <div class="lbl">Tags <small>— optionnel</small></div>
+    <div class="tagwrap">${TAGS.map(t=>chip(I.tags.has(t.id),`${t.emoji} ${esc(t.label)}`,`toggleSet(IDEA.tags,'${t.id}');reIdea()`)).join('')}</div>
+    <button class="btn" style="width:100%;margin-top:18px" id="i-save" onclick="saveIdea()">💾 Enregistrer</button></div>`;
+}
+async function saveIdea(){
+  const I=IDEA; if(!I.L){toast('Colle d\'abord un lien');return}
+  const b=$('#i-save'); b.disabled=true; b.textContent='⏳ Enregistrement…';
+  try{
+    let it=I.id&&D.ideas.find(x=>x.id===I.id); const isNew=!it;
+    if(!it)it={id:uid(),created:now(),tested:false,photo:null,thumbUrl:''};
+    const blob=I.file?await resize(I.file,PHOTO_MAX,PHOTO_Q):I.blob;
+    if(blob){
+      const name=`i-${it.id}-${uid(4)}${extOf(blob.type)}`; await putBlob(name,blob);
+      if(it.photo){await phDel(it.photo);await phDel('t:'+it.photo);dropUrls(it.photo)}
+      it.photo=name; it.thumbUrl=''; await ensureUrls(name);
+    }else if(!it.photo&&I.thumbUrl)it.thumbUrl=I.thumbUrl; // sinon on garde le lien de l'image (affichée tant qu'on est en ligne)
+    Object.assign(it,{url:I.L.url,platform:I.L.platform,title:I.title.trim()||'Sans nom',author:I.author,type:I.type,tags:[...I.tags]});
+    if(isNew)D.ideas.push(it);
+    IDEA=null; closeM(); await persist(); go('ideas'); toast(isNew?'💡 Envie enregistrée':'✓ Modifié');
+  }catch(e){console.error(e);toast('❌ '+(e.message||'Erreur'));b.disabled=false;b.textContent='💾 Enregistrer'}
 }
 
 /* ---------- hasard ---------- */
 function renderRandomFilters(){
   $('#rd-type').innerHTML=TYPES.map(t=>chip(RD.type===t.id,`${t.e} ${t.l}`,`RD.type='${t.id}';renderRandomFilters()`)).join('');
-  $('#rd-tags').innerHTML=D.tags.map(t=>chip(RD.tags.has(t.id),`${t.emoji} ${esc(t.label)}`,`toggleSet(RD.tags,'${jq(t.id)}');renderRandomFilters()`)).join('');
+  $('#rd-tags').innerHTML=TAGS.map(t=>chip(RD.tags.has(t.id),`${t.emoji} ${esc(t.label)}`,`toggleSet(RD.tags,'${jq(t.id)}');renderRandomFilters()`)).join('');
 }
 function roll(){
   const L=D.recipes.filter(r=>r.type===RD.type&&[...RD.tags].every(t=>r.tags.includes(t)));
@@ -722,7 +888,7 @@ function renderShop(){
   $('#shop-sub').textContent=plan.length?`${plan.length} plat(s) au menu · ${list.length} article(s)`:'';
   if(!plan.length){
     $('#shop').innerHTML=`<div class="empty"><div class="big">🛒</div><p>Aucun plat au menu.<br>Choisis ce que tu veux manger cette semaine.</p>
-      <button class="btn" onclick="go('swipe')">🗓️ Composer mon menu</button></div>${pantryEditor()}`;return}
+      <button class="btn" onclick="go('home');startSelect()">🗓️ Composer mon menu</button></div>${pantryEditor()}`;return}
   $('#shop').innerHTML=`<div class="planrow">${plan.map(r=>`<div class="mini"><button class="rm" onclick="togglePlan('${r.id}',1).then(renderShop)">✕</button>
       <div class="t" onclick="openDetail('${r.id}')">${photoHTML(r)}</div>${esc(r.name)}</div>`).join('')}</div>
     <div class="progress"><i style="width:${list.length?done/list.length*100:0}%"></i></div>
