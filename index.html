@@ -475,7 +475,7 @@ function openSettings(){
   $('#set').innerHTML=`<div class="sec"><button class="close lt" onclick="closeM()">✕</button>
     <h2>⚙️ Synchro GitHub</h2>
     <p class="help">Tes recettes sont stockées sur cet appareil. GitHub sert de sauvegarde et permet de retrouver les mêmes recettes sur ton Mac ou un autre téléphone.</p>
-    <div class="lbl">Ton nom d'utilisateur GitHub</div><input class="field" id="s-owner" value="${esc(c.owner)}" autocapitalize="off" autocorrect="off" placeholder="ex : christophe-ngy">
+    <div class="lbl">Ton nom d'utilisateur GitHub</div><input class="field" id="s-owner" value="${esc(c.owner)}" autocapitalize="off" autocorrect="off" placeholder="ton pseudo GitHub">
     <div class="lbl">Dépôt de données (privé)</div><input class="field" id="s-repo" value="${esc(c.repo)}" autocapitalize="off" autocorrect="off">
     <div class="lbl">Jeton d'accès <small>— reste sur cet appareil</small></div><input class="field" id="s-token" type="password" value="${esc(c.token)}" autocapitalize="off" autocorrect="off" placeholder="github_pat_…">
     <details style="margin-top:12px"><summary class="lbl" style="cursor:pointer;margin:0">Branche (avancé)</summary>
