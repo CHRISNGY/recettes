@@ -1,0 +1,770 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Recettes">
+<meta name="theme-color" content="#fff8f0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Mes Recettes</title>
+<style>
+:root{
+  --bg:#fff8f0; --card:#ffffff; --ink:#2b1d14; --muted:#8a7464; --line:#efe2d4;
+  --accent:#ff6b35; --accent-2:#ffb627; --good:#2bb673; --bad:#e5484d; --chip:#fbeee0;
+  --shadow:0 6px 20px rgba(80,40,10,.10); --r:18px;
+  --font: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#1a1410; --card:#251d17; --ink:#f6ebe0; --muted:#b39c8a; --line:#3a2e25; --chip:#33281f;
+  --shadow:0 6px 20px rgba(0,0,0,.4);
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font)}
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+input,textarea{font:inherit;color:inherit}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(10px + env(safe-area-inset-top)) 0 6px}
+.top{display:flex;align-items:center;gap:8px}
+.top h1{flex:1}
+h1{font-size:28px;margin:4px 0 2px;letter-spacing:-.5px}
+.ib{position:relative;width:42px;height:42px;border-radius:50%;background:var(--chip);font-size:20px;display:grid;place-items:center}
+.ib .n{position:absolute;top:-3px;right:-3px;background:var(--accent);color:#fff;border-radius:999px;font-size:11px;font-weight:800;padding:1px 6px}
+.ib.spin span:first-child{display:inline-block;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stats{color:var(--muted);font-size:14px;display:flex;gap:12px;flex-wrap:wrap}
+.banner{display:flex;gap:10px;align-items:center;background:var(--chip);border-radius:14px;padding:10px 12px;margin-top:8px;font-size:14px;width:100%;text-align:left}
+.search{display:flex;gap:8px;margin:10px 0 6px}
+.search input{flex:1;min-width:0;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);outline:none;font-size:16px}
+.search input:focus{border-color:var(--accent)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 12px;border-radius:999px;background:var(--chip);font-size:14px;white-space:nowrap;border:1.5px solid transparent;transition:.15s}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chip.sm{padding:5px 10px;font-size:13px}
+select.chip{appearance:none;-webkit-appearance:none;padding-right:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:6px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}}
+.card{position:relative;border-radius:var(--r);overflow:hidden;background:var(--card);box-shadow:var(--shadow);aspect-ratio:4/5;text-align:left;transition:transform .15s}
+.card:active{transform:scale(.97)}
+.card img,.ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ph{display:grid;place-items:center;font-size:64px;background:linear-gradient(135deg,#ffd6a5,#ffadad)}
+.ph.dessert{background:linear-gradient(135deg,#ffc6ff,#bdb2ff)}
+.ph.entree{background:linear-gradient(135deg,#caffbf,#9bf6ff)}
+.ph.snack{background:linear-gradient(135deg,#fdffb6,#ffd6a5)}
+.card .ov{position:absolute;inset:auto 0 0 0;padding:28px 10px 10px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff}
+.card .nm{font-weight:700;font-size:16px;line-height:1.15}
+.card .em{font-size:14px;margin-top:4px;opacity:.95}
+.badge{position:absolute;top:8px;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;backdrop-filter:blur(6px)}
+.badge.l{left:8px;background:rgba(255,255,255,.85);color:#2b1d14}
+.badge.r{right:8px;background:var(--accent);color:#fff}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty .big{font-size:64px}
+.btn{padding:14px 18px;border-radius:14px;background:var(--accent);color:#fff;font-weight:700;font-size:16px}
+.btn.ghost{background:var(--chip);color:var(--ink)}
+.btn.good{background:var(--good)}
+.btn:disabled{opacity:.5}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+nav button{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--muted);gap:2px;min-width:60px;position:relative}
+nav button .i{font-size:24px;filter:grayscale(1);opacity:.7}
+nav button.on{color:var(--accent)}
+nav button.on .i{filter:none;opacity:1}
+nav .add{width:58px;height:58px;border-radius:50%;background:var(--accent);color:#fff;font-size:32px;margin-top:-30px;box-shadow:0 8px 20px rgba(255,107,53,.45);justify-content:center}
+.dot{position:absolute;top:-4px;right:10px;background:var(--accent);color:#fff;border-radius:999px;font-size:10px;padding:1px 6px;font-weight:700}
+.modal{position:fixed;inset:0;z-index:20;background:rgba(20,10,5,.5);display:none;align-items:flex-end;justify-content:center}
+.modal.open{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:94vh;overflow:auto;border-radius:24px 24px 0 0;padding:0 0 calc(20px + env(safe-area-inset-bottom));animation:up .25s ease}
+@media(min-width:700px){.modal{align-items:center}.sheet{border-radius:24px}}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.hero{position:relative;aspect-ratio:4/3;background:var(--chip)}
+.hero img,.hero .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.close{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:18px;z-index:2}
+.close.lt{background:var(--chip);color:var(--ink)}
+.sec{padding:16px;position:relative}
+.sec h2{margin:0 0 6px;font-size:24px;padding-right:44px}
+.lbl{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px}
+.lbl small{text-transform:none;font-weight:400;font-size:13px}
+.ings{display:flex;flex-wrap:wrap;gap:8px}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.notes{white-space:pre-wrap;background:var(--card);padding:12px;border-radius:12px;line-height:1.4}
+.pick{display:grid;place-items:center;aspect-ratio:4/3;background:var(--chip);border:2px dashed var(--line);border-radius:var(--r);overflow:hidden;position:relative;width:100%;cursor:pointer}
+.pick img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pick .hint{text-align:center;color:var(--muted)}
+.pick .hint b{display:block;font-size:48px}
+.field{width:100%;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);outline:none;font-size:16px}
+.field:focus{border-color:var(--accent)}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.seg.c3{grid-template-columns:repeat(3,1fr)}
+.seg button{padding:12px 4px;border-radius:14px;background:var(--card);border:2px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:13px}
+.seg button b{font-size:26px}
+.seg button.on{border-color:var(--accent);background:var(--chip)}
+.tagwrap{display:flex;flex-wrap:wrap;gap:8px}
+.ingbox{position:relative}
+.sugg{position:absolute;left:0;right:0;top:100%;z-index:3;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;display:none}
+.sugg button{display:block;width:100%;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
+.sugg button:last-child{border:0}
+.x{margin-left:6px;opacity:.6}
+.deck{position:relative;height:min(62vh,560px);max-width:420px;margin:12px auto}
+.sw{position:absolute;inset:0;border-radius:24px;overflow:hidden;background:var(--card);box-shadow:var(--shadow);touch-action:none;user-select:none;-webkit-user-select:none}
+.sw img,.sw .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.sw .ov{position:absolute;inset:auto 0 0 0;padding:60px 18px 18px;background:linear-gradient(transparent,rgba(0,0,0,.8));color:#fff}
+.sw .nm{font-size:26px;font-weight:800}
+.sw .em{margin-top:6px;font-size:15px}
+.stamp{position:absolute;top:24px;padding:6px 14px;border:4px solid;border-radius:12px;font-size:28px;font-weight:900;opacity:0;transform:rotate(-12deg)}
+.stamp.yes{left:20px;color:var(--good);border-color:var(--good)}
+.stamp.no{right:20px;color:var(--bad);border-color:var(--bad);transform:rotate(12deg)}
+.swbtns{display:flex;justify-content:center;gap:28px;margin:8px 0}
+.round{width:68px;height:68px;border-radius:50%;background:var(--card);box-shadow:var(--shadow);font-size:30px}
+.planrow{display:flex;gap:10px;overflow-x:auto;padding:8px 0 10px}
+.mini{flex:none;width:92px;text-align:center;font-size:12px;position:relative}
+.mini .t{width:92px;height:92px;border-radius:16px;overflow:hidden;position:relative;margin-bottom:4px}
+.mini .t img,.mini .t .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;font-size:36px}
+.mini .rm{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;background:var(--bad);color:#fff;font-size:13px;z-index:2}
+.item{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--card);border-radius:14px;margin-bottom:8px;width:100%;text-align:left}
+.item .box{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:16px;color:#fff}
+.item.done{opacity:.45}
+.item.done .box{background:var(--good);border-color:var(--good)}
+.item.done .n{text-decoration:line-through}
+.item .n{flex:1;font-size:17px}
+.item .n::first-letter{text-transform:uppercase}
+.item .f{font-size:12px;color:var(--muted);text-align:right}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.progress{height:10px;border-radius:999px;background:var(--chip);overflow:hidden;margin:8px 0 14px}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--accent-2),var(--accent));transition:width .3s}
+.dice{font-size:90px;text-align:center;margin:30px 0 10px;cursor:pointer;user-select:none}
+.dice.roll{animation:roll .6s ease}
+@keyframes roll{50%{transform:rotate(200deg) scale(1.2)}100%{transform:rotate(360deg)}}
+.toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:999px;font-weight:700;opacity:0;transition:.25s;z-index:30;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.choice{display:block;width:100%;text-align:left;padding:14px;border-radius:16px;background:var(--card);border:2px solid var(--line);margin-top:10px}
+.choice b{display:block;font-size:17px;margin-bottom:4px}
+.choice span{color:var(--muted);font-size:14px}
+.help{font-size:14px;line-height:1.5;color:var(--muted)}
+.help ol{padding-left:20px;margin:6px 0}
+.help code{background:var(--chip);padding:1px 5px;border-radius:5px;color:var(--ink)}
+.warn{background:#fff1e6;color:#8a3a10;border-radius:12px;padding:10px 12px;font-size:14px;margin-top:10px}
+@media (prefers-color-scheme: dark){.warn{background:#3a2316;color:#ffc9a6}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<section id="v-home">
+  <header><div class="wrap">
+    <div class="top">
+      <h1>🍳 Mes Recettes</h1>
+      <button class="ib" id="sync-btn" onclick="sync()" title="Synchroniser"><span>🔄</span><span class="n hidden" id="sync-n"></span></button>
+      <button class="ib" onclick="openSettings()" title="Réglages">⚙️</button>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div id="banner"></div>
+    <div class="search"><input id="q" type="search" placeholder="Chercher un plat ou un ingrédient…"></div>
+    <div class="chips" id="f-type"></div>
+    <div class="chips" id="f-tags"></div>
+  </div></header>
+  <div class="wrap"><div class="grid" id="grid"></div></div>
+</section>
+
+<section id="v-swipe" class="hidden"><div class="wrap">
+  <header><h1>🗓️ Menu de la semaine</h1>
+    <div class="stats">Glisse à droite = je veux · à gauche = pas cette fois</div>
+    <div class="chips" id="sw-type"></div>
+  </header>
+  <div class="deck" id="deck"></div>
+  <div class="swbtns" id="swbtns">
+    <button class="round" onclick="swipeTop(false)">❌</button>
+    <button class="round" onclick="swipeTop(true)">💚</button>
+  </div>
+</div></section>
+
+<section id="v-random" class="hidden"><div class="wrap">
+  <header><h1>🎲 Je sais pas quoi manger</h1>
+    <div class="stats">Choisis tes envies, lance le dé.</div>
+    <div class="chips" id="rd-type"></div>
+    <div class="chips" id="rd-tags"></div>
+  </header>
+  <div class="dice" id="dice" onclick="roll()">🎲</div>
+  <div id="rd-out" style="max-width:380px;margin:0 auto"></div>
+</div></section>
+
+<section id="v-shop" class="hidden"><div class="wrap">
+  <header><h1>🛒 Liste de courses</h1><div class="stats" id="shop-sub"></div></header>
+  <div id="shop"></div>
+</div></section>
+
+<nav>
+  <button data-v="home" class="on" onclick="go('home')"><span class="i">📖</span>Recettes</button>
+  <button data-v="swipe" onclick="go('swipe')"><span class="i">🗓️</span>Menu</button>
+  <button class="add" onclick="openForm()">＋</button>
+  <button data-v="random" onclick="go('random')"><span class="i">🎲</span>Hasard</button>
+  <button data-v="shop" onclick="go('shop')"><span class="i">🛒</span>Courses<span class="dot hidden" id="plan-dot"></span></button>
+</nav>
+
+<div class="modal" id="m-detail" onclick="if(event.target===this)closeM()"><div class="sheet" id="detail"></div></div>
+<div class="modal" id="m-form" onclick="if(event.target===this)closeM()"><div class="sheet" id="form"></div></div>
+<div class="modal" id="m-set" onclick="if(event.target===this)closeM()"><div class="sheet" id="set"></div></div>
+<div class="modal" id="m-conf"><div class="sheet" id="conf"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   Mes Recettes — appli 100 % dans le navigateur.
+   Données : IndexedDB (local). Sauvegarde/synchro : dépôt GitHub privé.
+   ===================================================================== */
+const TYPES=[{id:'plat',e:'🍲',l:'Plat'},{id:'entree',e:'🥗',l:'Entrée'},{id:'dessert',e:'🍰',l:'Dessert'},{id:'snack',e:'🥨',l:'Snack'}];
+const CAL=[null,{e:'🪶',l:'Léger'},{e:'🍽️',l:'Normal'},{e:'🔥',l:'Copieux'}];
+const DEFAULT_TAGS=[
+  {id:'poisson',emoji:'🐟',label:'Poisson'},{id:'viande',emoji:'🥩',label:'Viande'},{id:'volaille',emoji:'🍗',label:'Volaille'},
+  {id:'vege',emoji:'🌱',label:'Végé'},{id:'legumes',emoji:'🥦',label:'Légumes'},{id:'feculents',emoji:'🍝',label:'Féculents'},
+  {id:'oeufs',emoji:'🥚',label:'Œufs'},{id:'fromage',emoji:'🧀',label:'Fromage'},{id:'epice',emoji:'🌶️',label:'Épicé'},{id:'rapide',emoji:'⚡',label:'Rapide'}];
+const DEFAULT_PANTRY=['sel','poivre',"huile d'olive"];
+const DAY=86400, PHOTO_MAX=1280, PHOTO_Q=0.72, THUMB_MAX=500;
+
+let D=null;                               // données synchronisées (recettes, tags, placard, menu, coches)
+let META={lastCommit:null,changes:0};     // état de synchro de cet appareil
+let CFG=null;                             // {owner, repo, branch, token}
+let URLS={};                              // nom photo -> {full, thumb} (object URLs)
+let SYNCING=false, lastAuto=0;
+let F={type:null,tags:new Set(),cal:null,fav:false,sort:'recent',q:''};
+let SW={type:'plat',queue:[]}, RD={type:'plat',tags:new Set()};
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const jq=s=>esc(String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"));
+const tagOf=id=>D.tags.find(t=>t.id===id)||{id,emoji:'🏷️',label:id};
+const typeOf=id=>TYPES.find(t=>t.id===id)||TYPES[0];
+const now=()=>Date.now()/1000;
+const uid=(n=10)=>Array.from(crypto.getRandomValues(new Uint8Array(n)),b=>'abcdefghijklmnopqrstuvwxyz0123456789'[b%36]).join('');
+function toast(t,ms=1900){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),ms)}
+function toggleSet(s,v){s.has(v)?s.delete(v):s.add(v)}
+
+/* ---------- IndexedDB ---------- */
+let idb;
+const idbReq=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open('recettes',1);
+  r.onupgradeneeded=()=>{r.result.createObjectStore('kv');r.result.createObjectStore('photos')};
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+const store=(n,m)=>idb.transaction(n,m||'readonly').objectStore(n);
+const kvGet=k=>idbReq(store('kv').get(k));
+const kvSet=(k,v)=>idbReq(store('kv','readwrite').put(v,k));
+const phGet=k=>idbReq(store('photos').get(k));
+const phSet=(k,v)=>idbReq(store('photos','readwrite').put(v,k));
+const phDel=k=>idbReq(store('photos','readwrite').delete(k));
+const phKeys=()=>idbReq(store('photos').getAllKeys());
+
+function emptyData(){return {version:1,recipes:[],tags:DEFAULT_TAGS.map(t=>({...t})),pantry:[...DEFAULT_PANTRY],plan:[],checked:[]}}
+function normalize(d){
+  d=d&&typeof d==='object'?d:{}; const e=emptyData();
+  for(const k of ['recipes','tags','pantry','plan','checked']) if(!Array.isArray(d[k])) d[k]=e[k];
+  d.version=1;
+  d.recipes.forEach(r=>{r.tags=r.tags||[];r.ingredients=r.ingredients||[];r.cooked=r.cooked||0;r.calories=r.calories||2;r.type=r.type||'plat';r.notes=r.notes||''});
+  return d;
+}
+// Toute modification passe par ici : sauvegarde locale + compteur "non synchronisé"
+async function persist(){META.changes++;await kvSet('data',D);await kvSet('meta',META);renderAll()}
+
+/* ---------- ingrédients ---------- */
+const norm=s=>String(s).trim().toLowerCase().replace(/\s+/g,' ');
+function mergeKey(s){ // 'Tomates' == 'tomate', 'Épinards' == 'epinard'
+  s=norm(s).normalize('NFD').replace(/[̀-ͯ]/g,'');
+  return s.split(' ').map(w=>w.length>3&&/[sx]$/.test(w)&&!/(ss|us|is|as)$/.test(w)?w.slice(0,-1):w).join(' ');
+}
+function cleanIngs(list){const out=[],seen=new Set();for(const it of list){const n=norm(it),k=mergeKey(n);if(n&&!seen.has(k)){seen.add(k);out.push(n)}}return out}
+const allIngredients=()=>[...new Set(D.recipes.flatMap(r=>r.ingredients).concat(D.pantry))].sort((a,b)=>a.localeCompare(b,'fr'));
+
+/* ---------- photos (WebP, repli JPEG si le navigateur ne sait pas encoder en WebP) ---------- */
+const mimeOf=n=>n.endsWith('.webp')?'image/webp':n.endsWith('.png')?'image/png':'image/jpeg';
+const extOf=t=>t==='image/webp'?'.webp':t==='image/png'?'.png':'.jpg';
+async function resize(blob,max,q){
+  const url=URL.createObjectURL(blob);
+  try{
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('Image illisible'));i.src=url});
+    const s=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+    const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*s);c.height=Math.round(img.naturalHeight*s);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    let b=await new Promise(r=>c.toBlob(r,'image/webp',q));
+    if(!b||b.type!=='image/webp') b=await new Promise(r=>c.toBlob(r,'image/jpeg',Math.min(.9,q+.05)));
+    return b;
+  }finally{URL.revokeObjectURL(url)}
+}
+async function blobOf(k){const r=await phGet(k);return r?new Blob([r.buf],{type:r.type}):null}
+async function putBlob(k,b){await phSet(k,{type:b.type,buf:await b.arrayBuffer()})}
+async function ensureUrls(name){
+  if(URLS[name])return; const full=await blobOf(name); if(!full)return;
+  let th=await blobOf('t:'+name); if(!th){th=await resize(full,THUMB_MAX,.7);await putBlob('t:'+name,th)}
+  URLS[name]={full:URL.createObjectURL(full),thumb:URL.createObjectURL(th)};
+}
+function dropUrls(name){const u=URLS[name];if(u){URL.revokeObjectURL(u.full);URL.revokeObjectURL(u.thumb);delete URLS[name]}}
+async function loadPhotos(){Object.keys(URLS).forEach(dropUrls);await Promise.all(D.recipes.filter(r=>r.photo).map(r=>ensureUrls(r.photo).catch(console.error)))}
+function photoHTML(r,full){
+  const u=r.photo&&URLS[r.photo];
+  return u?`<img src="${full?u.full:u.thumb}" alt="">`:`<div class="ph ${r.type}">${typeOf(r.type).e}</div>`;
+}
+
+/* =====================================================================
+   SYNCHRO GITHUB (façon Anki)
+   - modifié ici seulement      -> push
+   - modifié sur GitHub seulement -> pull
+   - modifié des deux côtés     -> on choisit qui écrase l'autre
+   Dépôt : recettes.json + photos/<nom>. Un push = un seul commit (atomique).
+   ===================================================================== */
+async function gh(path,opt={}){
+  const base=CFG.api||'https://api.github.com';
+  const r=await fetch(`${base}/repos/${CFG.owner}/${CFG.repo}${path}`,{
+    method:opt.method||'GET',cache:'no-store',
+    headers:{Authorization:`Bearer ${CFG.token}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...(opt.body?{'Content-Type':'application/json'}:{})},
+    body:opt.body?JSON.stringify(opt.body):undefined});
+  if(!r.ok){const e=new Error(`GitHub ${r.status}`);e.status=r.status;try{e.detail=(await r.json()).message}catch(_){ }throw e}
+  return r.status===204?null:r.json();
+}
+function bytesToB64(u8){let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s)}
+function b64ToBytes(b){const s=atob(b.replace(/\s/g,''));const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}
+const utf8B64=str=>bytesToB64(new TextEncoder().encode(str));
+
+async function getHead(){
+  try{return (await gh(`/git/ref/heads/${CFG.branch}`)).object.sha}
+  catch(e){if(e.status===404||e.status===409)return null;throw e} // 409 = dépôt vide
+}
+async function initRepo(){
+  const r=await gh('/contents/README.md',{method:'PUT',body:{message:'Initialisation',branch:CFG.branch,
+    content:utf8B64("# Mes Recettes\n\nDonnées de l'appli Mes Recettes (recettes.json + photos/). Ne pas modifier à la main.\n")}});
+  return r.commit.sha;
+}
+async function getTree(commit){
+  const c=await gh(`/git/commits/${commit}`);
+  const t=await gh(`/git/trees/${c.tree.sha}?recursive=1`);
+  const files={}; for(const e of t.tree) if(e.type==='blob') files[e.path]=e.sha;
+  return {treeSha:c.tree.sha,files,commit:c};
+}
+const readBlob=async sha=>b64ToBytes((await gh(`/git/blobs/${sha}`)).content);
+const status=t=>{$('#sync-btn').title=t;if(t)toast(t,60000)};
+
+async function pull(head){
+  const {files}=await getTree(head);
+  const data=normalize(files['recettes.json']?JSON.parse(new TextDecoder().decode(await readBlob(files['recettes.json']))):emptyData());
+  const need=[...new Set(data.recipes.map(r=>r.photo).filter(Boolean))];
+  const have=new Set(await phKeys());
+  const todo=need.filter(n=>!have.has(n)&&files['photos/'+n]);
+  let i=0;
+  for(const n of todo){ // on télécharge tout AVANT de remplacer les données locales
+    status(`⬇️ Photo ${++i}/${todo.length}`);
+    await phSet(n,{type:mimeOf(n),buf:(await readBlob(files['photos/'+n])).buffer});
+  }
+  D=data; META={lastCommit:head,changes:0};
+  await kvSet('data',D); await kvSet('meta',META);
+  const keep=new Set(need);
+  for(const k of have){if(!keep.has(k.startsWith('t:')?k.slice(2):k)){await phDel(k);dropUrls(k)}}
+  await loadPhotos();
+}
+async function push(head){
+  if(!head) head=await initRepo();
+  const {treeSha,files}=await getTree(head);
+  const entries=[];
+  const jb=await gh('/git/blobs',{method:'POST',body:{content:utf8B64(JSON.stringify(D,null,1)),encoding:'base64'}});
+  entries.push({path:'recettes.json',mode:'100644',type:'blob',sha:jb.sha});
+  const local=new Set(D.recipes.map(r=>r.photo).filter(Boolean));
+  const todo=[...local].filter(n=>!files['photos/'+n]); // les photos ont un nom unique : déjà là = identique
+  let i=0;
+  for(const n of todo){
+    status(`⬆️ Photo ${++i}/${todo.length}`);
+    const rec=await phGet(n); if(!rec)continue;
+    const b=await gh('/git/blobs',{method:'POST',body:{content:bytesToB64(new Uint8Array(rec.buf)),encoding:'base64'}});
+    entries.push({path:'photos/'+n,mode:'100644',type:'blob',sha:b.sha});
+  }
+  for(const p of Object.keys(files)) if(p.startsWith('photos/')&&!local.has(p.slice(7)))
+    entries.push({path:p,mode:'100644',type:'blob',sha:null}); // photo supprimée
+  status('⬆️ Envoi…');
+  const t=await gh('/git/trees',{method:'POST',body:{base_tree:treeSha,tree:entries}});
+  const c=await gh('/git/commits',{method:'POST',body:{tree:t.sha,parents:[head],
+    message:`Synchro ${new Date().toLocaleString('fr-FR')} · ${D.recipes.length} recettes`}});
+  await gh(`/git/refs/heads/${CFG.branch}`,{method:'PATCH',body:{sha:c.sha,force:false}});
+  META={lastCommit:c.sha,changes:0}; await kvSet('meta',META);
+}
+function askConflict(commit){
+  return new Promise(res=>{
+    const d=commit?.committer?.date?new Date(commit.committer.date).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}):'?';
+    $('#conf').innerHTML=`<div class="sec"><h2>⚠️ Conflit</h2>
+      <p class="help">Les recettes ont été modifiées <b>ici</b> et <b>sur GitHub</b> depuis la dernière synchro. Choisis la version à garder : l'autre sera écrasée.</p>
+      <button class="choice" data-c="local"><b>📱 Garder cet appareil</b><span>${D.recipes.length} recettes · ${META.changes} modif(s) non envoyée(s). GitHub sera écrasé.</span></button>
+      <button class="choice" data-c="remote"><b>☁️ Garder GitHub</b><span>Modifié le ${d}. Cet appareil sera écrasé.</span></button>
+      <button class="btn ghost" style="width:100%;margin-top:14px" data-c="">Annuler</button></div>`;
+    $('#conf').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{$('#m-conf').classList.remove('open');res(b.dataset.c)});
+    $('#m-conf').classList.add('open');
+  });
+}
+function errMsg(e){
+  if(e instanceof TypeError) return '📵 Réseau indisponible';
+  return ({401:'🔑 Jeton invalide ou expiré',403:'🚫 Accès refusé : vérifie les droits du jeton',404:'❓ Dépôt introuvable (nom ou droits du jeton)',
+    409:'⏳ Dépôt en cours d\'initialisation, réessaie',422:'🔁 GitHub a changé pendant la synchro, relance'})[e.status]||`❌ Erreur de synchro (${e.detail||e.message})`;
+}
+async function sync(auto=false){
+  if(!CFG){if(!auto)openSettings();return}
+  if(SYNCING)return;
+  if(!navigator.onLine){if(!auto)toast('📵 Hors ligne');return}
+  SYNCING=true; $('#sync-btn').classList.add('spin');
+  try{
+    const head=await getHead();
+    const local=META.changes>0, remote=head!==META.lastCommit;
+    if(!local&&!remote){if(!auto)toast('✓ Déjà à jour')}
+    else if(!local){
+      if(head){await pull(head);toast('⬇️ Mis à jour depuis GitHub')}
+      else if(!auto&&D.recipes.length){await push(null);toast('⬆️ Envoyé sur GitHub')}
+    }
+    else if(auto){/* push et conflits : seulement sur action manuelle */}
+    else if(!remote){await push(head);toast('⬆️ Envoyé sur GitHub')}
+    else{
+      const {files,commit}=await getTree(head);
+      if(!files['recettes.json']){await push(head);toast('⬆️ Envoyé sur GitHub')}
+      else{
+        const c=await askConflict(commit);
+        if(c==='local'){await push(head);toast('📱 GitHub remplacé par cet appareil')}
+        else if(c==='remote'){await pull(head);toast('☁️ Appareil remplacé par GitHub')}
+      }
+    }
+  }catch(e){console.error(e);toast(errMsg(e),3500)}
+  finally{SYNCING=false;$('#sync-btn').classList.remove('spin');$('#sync-btn').title='Synchroniser';renderAll();refreshOpenViews()}
+}
+function refreshOpenViews(){if(!$('#v-shop').classList.contains('hidden'))renderShop();if(!$('#v-swipe').classList.contains('hidden'))buildDeck()}
+document.addEventListener('visibilitychange',()=>{ // pull auto en revenant dans l'appli
+  if(document.visibilityState==='visible'&&Date.now()-lastAuto>60000){lastAuto=Date.now();sync(true)}
+});
+
+/* ---------- réglages ---------- */
+function openSettings(){
+  const c=CFG||{owner:'',repo:'recettes-data',branch:'main',token:''};
+  $('#set').innerHTML=`<div class="sec"><button class="close lt" onclick="closeM()">✕</button>
+    <h2>⚙️ Synchro GitHub</h2>
+    <p class="help">Tes recettes sont stockées sur cet appareil. GitHub sert de sauvegarde et permet de retrouver les mêmes recettes sur ton Mac ou un autre téléphone.</p>
+    <div class="lbl">Ton nom d'utilisateur GitHub</div><input class="field" id="s-owner" value="${esc(c.owner)}" autocapitalize="off" autocorrect="off" placeholder="ex : christophe-ngy">
+    <div class="lbl">Dépôt de données (privé)</div><input class="field" id="s-repo" value="${esc(c.repo)}" autocapitalize="off" autocorrect="off">
+    <div class="lbl">Jeton d'accès <small>— reste sur cet appareil</small></div><input class="field" id="s-token" type="password" value="${esc(c.token)}" autocapitalize="off" autocorrect="off" placeholder="github_pat_…">
+    <details style="margin-top:12px"><summary class="lbl" style="cursor:pointer;margin:0">Branche (avancé)</summary>
+      <input class="field" id="s-branch" value="${esc(c.branch)}" style="margin-top:8px" autocapitalize="off"></details>
+    <button class="btn" style="width:100%;margin-top:16px" id="s-save" onclick="saveSettings()">🔌 Tester et enregistrer</button>
+    <details style="margin-top:16px"><summary class="lbl" style="cursor:pointer;margin:0">❓ Comment créer le dépôt et le jeton</summary><div class="help">
+      <ol><li>Sur github.com : <b>New repository</b> → nom <code>recettes-data</code> → <b>Private</b> → Create.</li>
+      <li>Settings → Developer settings → <b>Fine-grained tokens</b> → Generate new token.</li>
+      <li>Repository access : <b>Only select repositories</b> → <code>recettes-data</code>.</li>
+      <li>Permissions → Repository → <b>Contents : Read and write</b>.</li>
+      <li>Génère, copie le jeton, colle-le ici.</li></ol>
+      Le jeton n'a accès qu'à ce dépôt. À recréer quand il expire.</div></details>
+    ${CFG?`<div class="lbl">Cet appareil</div><div class="help">${D.recipes.length} recettes · ${META.changes} modif(s) non synchronisée(s)${META.lastCommit?` · dernier commit ${META.lastCommit.slice(0,7)}`:''}</div>
+      <button class="btn ghost" style="width:100%;margin-top:10px" onclick="logout()">🔌 Déconnecter GitHub (garde les recettes)</button>`:''}
+  </div>`;
+  closeM(); $('#m-set').classList.add('open');
+}
+async function saveSettings(){
+  const c={owner:$('#s-owner').value.trim(),repo:$('#s-repo').value.trim(),branch:$('#s-branch').value.trim()||'main',token:$('#s-token').value.trim()};
+  if(!c.owner||!c.repo||!c.token){toast('Remplis les 3 champs');return}
+  if(CFG?.api)c.api=CFG.api;
+  const old=CFG, b=$('#s-save'); CFG=c; b.disabled=true; b.textContent='⏳ Test…';
+  try{
+    const info=await gh('');
+    if(info.permissions&&!info.permissions.push) throw Object.assign(new Error('lecture seule'),{status:403});
+    if(!info.private&&!confirm('⚠️ Ce dépôt est PUBLIC : tout le monde pourra voir tes recettes et tes photos. Continuer quand même ?')) throw null;
+    if(!old||old.owner!==c.owner||old.repo!==c.repo||old.branch!==c.branch){
+      META.lastCommit=null; if(D.recipes.length)META.changes=Math.max(1,META.changes); await kvSet('meta',META);
+    }
+    await kvSet('config',c); closeM(); toast('✅ Connecté'); sync();
+  }catch(e){CFG=old; if(e)toast(errMsg(e),3500); b.disabled=false; b.textContent='🔌 Tester et enregistrer'}
+}
+async function logout(){if(!confirm('Déconnecter GitHub sur cet appareil ? Les recettes restent ici.'))return;CFG=null;await kvSet('config',null);closeM();renderAll()}
+
+/* ---------- navigation ---------- */
+function go(v){
+  document.querySelectorAll('section').forEach(s=>s.classList.add('hidden'));
+  $('#v-'+v).classList.remove('hidden');
+  document.querySelectorAll('nav [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  if(v==='swipe')buildDeck(); if(v==='shop')renderShop(); if(v==='random')renderRandomFilters();
+  scrollTo(0,0);
+}
+function emojis(r){return [typeOf(r.type).e,CAL[r.calories]?.e,...r.tags.map(t=>tagOf(t).emoji)].filter(Boolean).join(' ')}
+function forgotten(r){return now()-(r.last_cooked||r.created)>30*DAY}
+function chip(on,html,fn){return `<button class="chip ${on?'on':''}" onclick="${fn}">${html}</button>`}
+
+/* ---------- accueil ---------- */
+function renderAll(){renderStats();renderFilters();renderGrid();updateBadges()}
+function updateBadges(){
+  const d=$('#plan-dot');d.textContent=D.plan.length;d.classList.toggle('hidden',!D.plan.length);
+  const n=$('#sync-n');n.textContent=META.changes>99?'99+':META.changes;n.classList.toggle('hidden',!CFG||!META.changes);
+}
+function renderStats(){
+  const cooked=D.recipes.reduce((a,r)=>a+r.cooked,0),fav=D.recipes.filter(r=>r.favorite).length;
+  $('#stats').innerHTML=`<span>📖 ${D.recipes.length} plats</span><span>🍳 ${cooked} fois cuisiné</span><span>⭐ ${fav} favoris</span>`;
+  $('#banner').innerHTML=CFG?'':`<button class="banner" onclick="openSettings()">☁️<span><b>Sauvegarde non configurée.</b> Si tu supprimes l'appli, tu perds tout. Touche pour connecter GitHub.</span></button>`;
+}
+function renderFilters(){
+  $('#f-type').innerHTML=chip(!F.type,'Tout',"F.type=null;renderAll()")+
+    TYPES.map(t=>chip(F.type===t.id,`${t.e} ${t.l}`,`F.type=F.type==='${t.id}'?null:'${t.id}';renderAll()`)).join('')+
+    CAL.slice(1).map((c,i)=>chip(F.cal===i+1,`${c.e} ${c.l}`,`F.cal=F.cal===${i+1}?null:${i+1};renderAll()`)).join('');
+  const used=new Set(D.recipes.flatMap(r=>r.tags));
+  $('#f-tags').innerHTML=chip(F.fav,'⭐ Favoris',"F.fav=!F.fav;renderAll()")+
+    `<select class="chip" onchange="F.sort=this.value;renderGrid()">
+      <option value="recent" ${F.sort==='recent'?'selected':''}>🆕 Récents</option>
+      <option value="forgot" ${F.sort==='forgot'?'selected':''}>💤 Oubliés</option>
+      <option value="top" ${F.sort==='top'?'selected':''}>🏆 Les + cuisinés</option>
+      <option value="az" ${F.sort==='az'?'selected':''}>🔤 A → Z</option></select>`+
+    D.tags.filter(t=>used.has(t.id)).map(t=>chip(F.tags.has(t.id),`${t.emoji} ${esc(t.label)}`,`toggleSet(F.tags,'${jq(t.id)}');renderAll()`)).join('');
+}
+function filtered(){
+  const q=F.q.trim().toLowerCase();
+  const L=D.recipes.filter(r=>(!F.type||r.type===F.type)&&(!F.cal||r.calories===F.cal)&&(!F.fav||r.favorite)
+    &&[...F.tags].every(t=>r.tags.includes(t))&&(!q||r.name.toLowerCase().includes(q)||r.ingredients.some(i=>i.includes(q))));
+  const k={recent:(a,b)=>b.created-a.created,forgot:(a,b)=>(a.last_cooked||0)-(b.last_cooked||0),
+    top:(a,b)=>b.cooked-a.cooked,az:(a,b)=>a.name.localeCompare(b.name,'fr')}[F.sort];
+  return L.sort(k);
+}
+function cardHTML(r,style=''){
+  const inPlan=D.plan.includes(r.id);
+  return `<button class="card" style="${style}" onclick="openDetail('${r.id}')">${photoHTML(r)}
+    ${r.favorite?'<span class="badge l">⭐</span>':forgotten(r)?'<span class="badge l">💤</span>':''}
+    ${inPlan?'<span class="badge r">🗓️ au menu</span>':r.cooked?`<span class="badge r" style="background:rgba(0,0,0,.45)">🍳×${r.cooked}</span>`:''}
+    <div class="ov"><div class="nm">${esc(r.name)}</div><div class="em">${emojis(r)}</div></div></button>`;
+}
+function renderGrid(){
+  if(!D.recipes.length){$('#grid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="big">📸</div><p>Ton carnet est vide.<br>Prends ton prochain plat en photo et ajoute-le.</p><button class="btn" onclick="openForm()">＋ Ajouter mon premier plat</button></div>`;return}
+  const L=filtered();
+  $('#grid').innerHTML=L.length?L.map(r=>cardHTML(r)).join(''):`<div class="empty" style="grid-column:1/-1"><div class="big">🤷</div><p>Aucun plat ne correspond.</p></div>`;
+}
+$('#q').addEventListener('input',e=>{F.q=e.target.value;renderGrid()});
+
+/* ---------- détail ---------- */
+function ago(t){if(!t)return 'jamais';const d=Math.floor((now()-t)/DAY);return d<1?"aujourd'hui":d===1?'hier':`il y a ${d} j`}
+function openDetail(id){
+  const r=D.recipes.find(x=>x.id===id); if(!r)return;
+  const inPlan=D.plan.includes(id);
+  $('#detail').innerHTML=`<div class="hero">${photoHTML(r,true)}<button class="close" onclick="closeM()">✕</button></div>
+  <div class="sec">
+    <h2>${r.favorite?'⭐ ':''}${esc(r.name)}</h2>
+    <div class="ings" style="margin-top:8px">
+      <span class="chip sm">${typeOf(r.type).e} ${typeOf(r.type).l}</span>
+      <span class="chip sm">${CAL[r.calories].e} ${CAL[r.calories].l}</span>
+      ${r.tags.map(t=>`<span class="chip sm">${tagOf(t).emoji} ${esc(tagOf(t).label)}</span>`).join('')}
+    </div>
+    <div class="stats" style="margin-top:10px">🍳 cuisiné ${r.cooked} fois · dernière fois ${ago(r.last_cooked)}</div>
+    <div class="lbl">Ingrédients</div>
+    <div class="ings">${r.ingredients.map(i=>`<span class="chip">${esc(i)}</span>`).join('')||'<span class="stats">—</span>'}</div>
+    ${r.notes?`<div class="lbl">Notes</div><div class="notes">${esc(r.notes)}</div>`:''}
+    <div class="acts">
+      <button class="btn ${inPlan?'ghost':''}" onclick="togglePlan('${id}')">${inPlan?'✓ Au menu':'🗓️ Ajouter au menu'}</button>
+      <button class="btn good" onclick="cooked('${id}')">🍳 Je l'ai cuisiné</button>
+      <button class="btn ghost" onclick="fav('${id}')">${r.favorite?'☆ Retirer favori':'⭐ Favori'}</button>
+      <button class="btn ghost" onclick="openForm('${id}')">✏️ Modifier</button>
+    </div>
+    <button class="btn ghost" style="width:100%;margin-top:10px;color:var(--bad)" onclick="del('${id}')">🗑️ Supprimer</button>
+  </div>`;
+  closeM(); $('#m-detail').classList.add('open');
+}
+function closeM(){document.querySelectorAll('.modal:not(#m-conf)').forEach(m=>m.classList.remove('open'))}
+const detailOpen=()=>$('#m-detail').classList.contains('open');
+async function togglePlan(id,silent){
+  D.plan=D.plan.includes(id)?D.plan.filter(x=>x!==id):[...D.plan,id]; await persist();
+  if(!silent){toast(D.plan.includes(id)?'🗓️ Ajouté au menu':'Retiré du menu');if(detailOpen())openDetail(id)}
+}
+async function cooked(id){
+  const r=D.recipes.find(x=>x.id===id); r.cooked++; r.last_cooked=now(); D.plan=D.plan.filter(x=>x!==id); await persist();
+  toast({1:'🎉 Première fois ! Bien joué',5:"🔥 5 fois, c'est un classique",10:'🏆 10 fois, plat signature !'}[r.cooked]||`🍳 +1 — ${r.cooked} fois`);
+  openDetail(id);
+}
+async function fav(id){const r=D.recipes.find(x=>x.id===id);r.favorite=!r.favorite;await persist();openDetail(id)}
+async function del(id){
+  const r=D.recipes.find(x=>x.id===id);
+  if(!confirm(`Supprimer « ${r.name} » définitivement ?`))return;
+  if(r.photo){await phDel(r.photo);await phDel('t:'+r.photo);dropUrls(r.photo)}
+  D.recipes=D.recipes.filter(x=>x.id!==id); D.plan=D.plan.filter(x=>x!==id);
+  closeM(); await persist(); toast('Supprimé');
+}
+
+/* ---------- formulaire ---------- */
+let E=null;
+function openForm(id){
+  const r=id?D.recipes.find(x=>x.id===id):null;
+  E={id:id||null,name:r?.name||'',type:r?.type||'plat',calories:r?.calories||2,tags:new Set(r?.tags||[]),
+     ingredients:[...(r?.ingredients||[])],notes:r?.notes||'',file:null,preview:r?.photo&&URLS[r.photo]?URLS[r.photo].full:null,newTags:[]};
+  renderForm(); closeM(); $('#m-form').classList.add('open'); $('#form').scrollTop=0;
+}
+function renderForm(){
+  $('#form').innerHTML=`<div class="sec"><button class="close lt" onclick="closeM()">✕</button>
+    <h2>${E.id?'✏️ Modifier':'📸 Nouveau plat'}</h2>
+    <label class="pick" style="margin-top:12px">
+      ${E.preview?`<img src="${E.preview}">`:'<div class="hint"><b>📷</b>Prendre / choisir une photo</div>'}
+      <input type="file" accept="image/*" hidden onchange="pickPhoto(this)">
+    </label>
+    <div class="lbl">Nom du plat</div>
+    <input class="field" id="e-name" value="${esc(E.name)}" placeholder="Ex : Saumon teriyaki" oninput="E.name=this.value">
+    <div class="lbl">Type</div>
+    <div class="seg">${TYPES.map(t=>`<button class="${E.type===t.id?'on':''}" onclick="E.type='${t.id}';renderForm()"><b>${t.e}</b>${t.l}</button>`).join('')}</div>
+    <div class="lbl">Calories</div>
+    <div class="seg c3">${CAL.slice(1).map((c,i)=>`<button class="${E.calories===i+1?'on':''}" onclick="E.calories=${i+1};renderForm()"><b>${c.e}</b>${c.l}</button>`).join('')}</div>
+    <div class="lbl">Tags</div>
+    <div class="tagwrap">${D.tags.concat(E.newTags).map(t=>chip(E.tags.has(t.id),`${t.emoji} ${esc(t.label)}`,`toggleSet(E.tags,'${jq(t.id)}');renderForm()`)).join('')}
+      <button class="chip" onclick="newTag()">＋ tag</button></div>
+    <div class="lbl">Ingrédients <small>— tape puis Entrée</small></div>
+    <div class="ings" style="margin-bottom:8px">${E.ingredients.map((i,k)=>`<button class="chip" onclick="E.ingredients.splice(${k},1);renderForm()">${esc(i)}<span class="x">✕</span></button>`).join('')}</div>
+    <div class="ingbox"><input class="field" id="e-ing" placeholder="tomate, riz, citron…" autocomplete="off" autocorrect="off" enterkeyhint="enter">
+      <div class="sugg" id="sugg"></div></div>
+    <div class="lbl">Notes <small>— optionnel, 2 lignes suffisent</small></div>
+    <textarea class="field" rows="3" placeholder="Four 200°, 20 min. Mariner la veille…" oninput="E.notes=this.value">${esc(E.notes)}</textarea>
+    <button class="btn" style="width:100%;margin-top:18px" id="e-save" onclick="saveForm()">💾 Enregistrer</button>
+  </div>`;
+  const inp=$('#e-ing');
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===','){e.preventDefault();addIng(inp.value)}});
+  inp.addEventListener('input',()=>suggest(inp.value));
+  inp.addEventListener('blur',()=>setTimeout(()=>{const s=$('#sugg');if(s)s.style.display='none'},150));
+}
+function pickPhoto(inp){const f=inp.files[0];if(!f)return;E.file=f;E.preview=URL.createObjectURL(f);const sc=$('#form').scrollTop;renderForm();$('#form').scrollTop=sc}
+function addIng(v,keepFocus=true){
+  v.split(',').map(s=>norm(s)).filter(Boolean).forEach(s=>{if(!E.ingredients.some(i=>mergeKey(i)===mergeKey(s)))E.ingredients.push(s)});
+  const sc=$('#form').scrollTop; renderForm(); $('#form').scrollTop=sc; if(keepFocus)$('#e-ing').focus();
+}
+function suggest(v){
+  const q=v.trim().toLowerCase(),box=$('#sugg');
+  if(!q){box.style.display='none';return}
+  const L=allIngredients().filter(i=>i.includes(q)&&!E.ingredients.includes(i)).sort((a,b)=>a.indexOf(q)-b.indexOf(q)).slice(0,6);
+  box.innerHTML=L.map(i=>`<button onmousedown="event.preventDefault()" onclick="addIng('${jq(i)}')">${esc(i)}</button>`).join('');
+  box.style.display=L.length?'block':'none';
+}
+function newTag(){
+  const l=prompt('Nom du nouveau tag (ex : Asiatique)'); if(!l||!l.trim())return;
+  const e=prompt('Un emoji pour ce tag ? (optionnel)','🏷️')||'🏷️';
+  const id=l.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||uid(6);
+  if(!D.tags.concat(E.newTags).some(t=>t.id===id))E.newTags.push({id,emoji:e.trim(),label:l.trim()});
+  E.tags.add(id); renderForm();
+}
+async function saveForm(){
+  const pending=$('#e-ing').value; if(pending.trim())addIng(pending,false);
+  if(!E.name.trim()){toast('Donne un nom au plat');$('#e-name').focus();return}
+  const b=$('#e-save'); b.disabled=true; b.textContent='⏳ Enregistrement…';
+  try{
+    let r=E.id&&D.recipes.find(x=>x.id===E.id); const isNew=!r;
+    if(!r)r={id:uid(),created:now(),favorite:false,cooked:0,last_cooked:null,photo:null};
+    if(E.file){
+      const full=await resize(E.file,PHOTO_MAX,PHOTO_Q);
+      const name=`${r.id}-${uid(4)}${extOf(full.type)}`; // nom unique à chaque photo -> synchro simple
+      await putBlob(name,full);
+      if(r.photo){await phDel(r.photo);await phDel('t:'+r.photo);dropUrls(r.photo)}
+      r.photo=name; await ensureUrls(name);
+    }
+    Object.assign(r,{name:E.name.trim(),type:E.type,calories:E.calories,tags:[...E.tags],ingredients:cleanIngs(E.ingredients),notes:E.notes.trim()});
+    for(const t of E.newTags) if(!D.tags.some(x=>x.id===t.id)) D.tags.push(t);
+    if(isNew)D.recipes.push(r);
+    await persist(); toast(isNew?`🎉 Plat n°${D.recipes.length} ajouté !`:'✓ Modifié'); openDetail(r.id);
+  }catch(e){console.error(e);toast('❌ '+(e.message||'Erreur'));b.disabled=false;b.textContent='💾 Enregistrer'}
+}
+
+/* ---------- menu (swipe) ---------- */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function buildDeck(){
+  $('#sw-type').innerHTML=TYPES.map(t=>chip(SW.type===t.id,`${t.e} ${t.l}`,`SW.type='${t.id}';buildDeck()`)).join('');
+  const L=D.recipes.filter(r=>r.type===SW.type&&!D.plan.includes(r.id));
+  SW.queue=[...shuffle(L.filter(forgotten)),...shuffle(L.filter(r=>!forgotten(r)))]; // les oubliés d'abord
+  renderDeck();
+}
+function renderDeck(){
+  const top=SW.queue.slice(0,2).reverse();
+  $('#swbtns').classList.toggle('hidden',!top.length);
+  if(!top.length){
+    $('#deck').innerHTML=`<div class="empty"><div class="big">${D.plan.length?'✅':'🍽️'}</div>
+      <p>${D.plan.length?`${D.plan.length} plat(s) au menu.`:'Plus rien à proposer ici.'}</p>
+      ${D.plan.length?`<button class="btn" onclick="go('shop')">🛒 Voir ma liste de courses</button>`:''}</div>`;return}
+  $('#deck').innerHTML=top.map((r,i)=>`<div class="sw" data-id="${r.id}" style="${i===0&&top.length>1?'transform:scale(.95) translateY(10px)':''}">
+    ${photoHTML(r,true)}<div class="stamp yes">MIAM</div><div class="stamp no">NOPE</div>
+    <div class="ov"><div class="nm">${esc(r.name)}</div><div class="em">${emojis(r)}${forgotten(r)?' · 💤 pas mangé depuis longtemps':''}</div></div></div>`).join('');
+  const el=$('#deck').lastElementChild; let x0=null,dx=0;
+  el.onpointerdown=e=>{x0=e.clientX;el.setPointerCapture(e.pointerId);el.style.transition='none'};
+  el.onpointermove=e=>{if(x0===null)return;dx=e.clientX-x0;el.style.transform=`translateX(${dx}px) rotate(${dx/15}deg)`;
+    el.querySelector('.yes').style.opacity=Math.max(0,dx/100);el.querySelector('.no').style.opacity=Math.max(0,-dx/100)};
+  el.onpointerup=el.onpointercancel=()=>{x0=null;if(Math.abs(dx)>90)fly(el,dx>0);else{el.style.transition='.25s';el.style.transform='';el.querySelectorAll('.stamp').forEach(s=>s.style.opacity=0)}dx=0};
+}
+function swipeTop(yes){const el=$('#deck .sw:last-child');if(el)fly(el,yes)}
+function fly(el,yes){
+  el.style.transition='.3s';el.style.transform=`translateX(${yes?600:-600}px) rotate(${yes?30:-30}deg)`;
+  el.querySelector(yes?'.yes':'.no').style.opacity=1;
+  const id=el.dataset.id; SW.queue=SW.queue.filter(r=>r.id!==id);
+  if(yes){D.plan.push(id);persist();toast(`💚 ${D.plan.length} au menu`)}
+  setTimeout(renderDeck,250);
+}
+
+/* ---------- hasard ---------- */
+function renderRandomFilters(){
+  $('#rd-type').innerHTML=TYPES.map(t=>chip(RD.type===t.id,`${t.e} ${t.l}`,`RD.type='${t.id}';renderRandomFilters()`)).join('');
+  $('#rd-tags').innerHTML=D.tags.map(t=>chip(RD.tags.has(t.id),`${t.emoji} ${esc(t.label)}`,`toggleSet(RD.tags,'${jq(t.id)}');renderRandomFilters()`)).join('');
+}
+function roll(){
+  const L=D.recipes.filter(r=>r.type===RD.type&&[...RD.tags].every(t=>r.tags.includes(t)));
+  const d=$('#dice'); d.classList.remove('roll'); void d.offsetWidth; d.classList.add('roll');
+  setTimeout(()=>{
+    if(!L.length){$('#rd-out').innerHTML='<div class="empty"><div class="big">🤷</div><p>Aucun plat avec ces critères.</p></div>';return}
+    const w=L.map(r=>forgotten(r)?3:1),tot=w.reduce((a,b)=>a+b); let x=Math.random()*tot,r=L[0]; // oubliés = 3× plus de chances
+    for(let i=0;i<L.length;i++){x-=w[i];if(x<=0){r=L[i];break}}
+    $('#rd-out').innerHTML=cardHTML(r,'width:100%')+
+      `<div class="acts"><button class="btn ghost" onclick="roll()">🎲 Relancer</button><button class="btn" onclick="togglePlan('${r.id}')">🗓️ Au menu</button></div>`;
+  },500);
+}
+
+/* ---------- courses ---------- */
+function shopping(){
+  const pantry=new Set(D.pantry.map(mergeKey)),by=Object.fromEntries(D.recipes.map(r=>[r.id,r])),items={},stock={};
+  for(const id of D.plan){const r=by[id];if(!r)continue;
+    for(const ing of r.ingredients){const k=mergeKey(ing),t=pantry.has(k)?stock:items;(t[k]??={key:k,name:ing,for:[]}).for.push(r.name)}}
+  const s=o=>Object.values(o).sort((a,b)=>a.name.localeCompare(b.name,'fr'));
+  return {items:s(items),pantry:s(stock)};
+}
+function shopList(){const ck=new Set(D.checked),SH=shopping();return {SH,ck,list:[...SH.items,...SH.pantry.filter(p=>ck.has('need:'+p.key))]}}
+function renderShop(){
+  const plan=D.plan.map(id=>D.recipes.find(r=>r.id===id)).filter(Boolean);
+  const {SH,ck,list}=shopList(), done=list.filter(i=>ck.has(i.key)).length;
+  $('#shop-sub').textContent=plan.length?`${plan.length} plat(s) au menu · ${list.length} article(s)`:'';
+  if(!plan.length){
+    $('#shop').innerHTML=`<div class="empty"><div class="big">🛒</div><p>Aucun plat au menu.<br>Choisis ce que tu veux manger cette semaine.</p>
+      <button class="btn" onclick="go('swipe')">🗓️ Composer mon menu</button></div>${pantryEditor()}`;return}
+  $('#shop').innerHTML=`<div class="planrow">${plan.map(r=>`<div class="mini"><button class="rm" onclick="togglePlan('${r.id}',1).then(renderShop)">✕</button>
+      <div class="t" onclick="openDetail('${r.id}')">${photoHTML(r)}</div>${esc(r.name)}</div>`).join('')}</div>
+    <div class="progress"><i style="width:${list.length?done/list.length*100:0}%"></i></div>
+    ${list.length&&done===list.length?'<div class="empty" style="padding:10px"><div class="big">🎉</div><p>Courses terminées !</p></div>':''}
+    ${list.map(i=>`<button class="item ${ck.has(i.key)?'done':''}" onclick="check('${jq(i.key)}')"><span class="box">${ck.has(i.key)?'✓':''}</span>
+      <span class="n">${esc(i.name)}</span><span class="f">${esc(i.for.join(', '))}</span></button>`).join('')}
+    ${SH.pantry.length?`<div class="lbl">🫙 Normalement au placard — touche si tu en manques</div>
+      <div class="ings">${SH.pantry.map(p=>chip(ck.has('need:'+p.key),esc(p.name),`check('need:${jq(p.key)}')`)).join('')}</div>`:''}
+    <div class="bar"><button class="btn" onclick="shareList()">📤 Envoyer la liste</button>
+      <button class="btn ghost" onclick="newWeek()">🔄 Nouvelle semaine</button></div>
+    ${pantryEditor()}`;
+}
+function pantryEditor(){
+  return `<details style="margin:16px 0" ${window._panOpen?'open':''} ontoggle="window._panOpen=this.open"><summary class="lbl" style="cursor:pointer">⚙️ Mon placard (${D.pantry.length}) — exclu de la liste</summary>
+    <div class="ings" style="margin:8px 0">${D.pantry.map((p,k)=>`<button class="chip" onclick="editPantry(${k})">${esc(p)}<span class="x">✕</span></button>`).join('')}</div>
+    <div class="search"><input id="pan-in" placeholder="Ajouter (ex : ail, beurre)…" onkeydown="if(event.key==='Enter')editPantry(-1,this.value)"></div></details>`;
+}
+async function editPantry(k,v){
+  const p=[...D.pantry]; if(k>=0)p.splice(k,1); else if(v&&v.trim())p.push(...v.split(','));
+  D.pantry=cleanIngs(p); await persist(); renderShop(); if(k<0)$('#pan-in').focus();
+}
+async function check(key){const c=new Set(D.checked);toggleSet(c,key);D.checked=[...c];await persist();renderShop()}
+async function shareList(){
+  const {ck,list}=shopList();
+  const txt='🛒 Courses\n'+list.filter(i=>!ck.has(i.key)).map(i=>'- '+i.name).join('\n');
+  if(navigator.share){try{await navigator.share({text:txt});return}catch(e){if(e.name==='AbortError')return}}
+  try{await navigator.clipboard.writeText(txt);toast('📋 Liste copiée')}catch(e){toast('Copie impossible')}
+}
+async function newWeek(){
+  if(!confirm('Vider le menu et la liste pour une nouvelle semaine ?'))return;
+  D.plan=[];D.checked=[];await persist();renderShop();toast('🔄 Nouvelle semaine');
+}
+
+/* ---------- démarrage ---------- */
+(async()=>{
+  try{idb=await openDB()}catch(e){document.body.innerHTML='<p style="padding:20px">Stockage local indisponible (navigation privée ?).</p>';return}
+  D=normalize(await kvGet('data')); META=(await kvGet('meta'))||META; CFG=(await kvGet('config'))||null;
+  await loadPhotos(); renderAll();
+  if(navigator.storage?.persist)navigator.storage.persist().catch(()=>{});
+  if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+  lastAuto=Date.now(); sync(true);
+})();
+</script>
+</body>
+</html>
